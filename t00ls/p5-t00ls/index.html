@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>new_074</title>
+	<meta charset="utf-8">
+	<!-- Compiled w/ P5LIVE, http://github.com/ffd8/p5live -->
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<style type="text/css">
+		body{
+			margin:0;
+			overflow:hidden;
+		}
+		canvas{
+			position:fixed;
+			top:0;
+			left:0;
+			z-index:-1;
+			width:100vw;
+			height:100vh;
+			margin:0;
+		}
+	</style>
+	<script type="text/javascript">
+		// eco-mode = only render if window focused
+		window.onblur = function () {
+			noLoop();
+		};
+		window.onfocus = function () {
+			loop();
+		};
+	</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+//coming soon
+
+// p5-t00ls credits
+var credits = {
+	"names" : [
+		"Coming Soon"
+	]
+	,"class" : ""
+	,"description" : "Guess what... coming soon."
+}
+
+function saveFrame(toolName){
+	let timestamp = (new Date()).toISOString().replace(/[^0-9]/g, '').slice(0, -3);
+	let filename = toolName + '_' + timestamp + '.png';
+	save(filename);
+}
+
+/* CUSTOM FUNCTIONS FOR P5LIVE */
+// keep fullscreen if window resized
+function windowResized() {
+	resizeCanvas(windowWidth, windowHeight);
+}
+
+// custom ease function
+function ease(iVal, oVal, eVal){
+	return oVal += (iVal - oVal) * eVal;
+}
+
+// processing compatibility
+function println(msg){
+	print(msg);
+}
+
+
+let fonts = {
+	win: ['Arial',
+		'Arial Black',
+		'Bahnschrift',
+		'Calibri',
+		'Cambria',
+		'Cambria Math',
+		'Candara',
+		'Comic Sans MS',
+		'Consolas',
+		'Constantia',
+		'Corbel',
+		'Courier New',
+		'Ebrima',
+		'Franklin Gothic Medium',
+		'Gabriola',
+		'Gadugi',
+		'Georgia',
+		'HoloLens MDL2 Assets',
+		'Impact',
+		'Ink Free',
+		'Javanese Text',
+		'Leelawadee UI',
+		'Lucida Console',
+		'Lucida Sans Unicode',
+		'Malgun Gothic',
+		'Marlett',
+		'Microsoft Himalaya',
+		'Microsoft JhengHei',
+		'Microsoft New Tai Lue',
+		'Microsoft PhagsPa',
+		'Microsoft Sans Serif',
+		'Microsoft Tai Le',
+		'Microsoft YaHei',
+		'Microsoft Yi Baiti',
+		'MingLiU-ExtB',
+		'Mongolian Baiti',
+		'MS Gothic',
+		'MV Boli',
+		'Myanmar Text',
+		'Nirmala UI',
+		'Palatino Linotype',
+		'Segoe MDL2 Assets',
+		'Segoe Print',
+		'Segoe Script',
+		'Segoe UI',
+		'Segoe UI Historic',
+		'Segoe UI Emoji',
+		'Segoe UI Symbol',
+		'SimSun',
+		'Sitka',
+		'Sylfaen',
+		'Symbol',
+		'Tahoma',
+		'Times New Roman',
+		'Trebuchet MS',
+		'Verdana',
+		'Webdings',
+		'Wingdings',
+		'Yu Gothic'
+	],
+	mac: ['American Typewriter',
+		'Andale Mono',
+		'Arial',
+		'Arial Black',
+		'Arial Narrow',
+		'Arial Rounded MT Bold',
+		'Arial Unicode MS',
+		'Avenir',
+		'Avenir Next',
+		'Avenir Next Condensed',
+		'Baskerville',
+		'Big Caslon',
+		'Bodoni 72',
+		'Bodoni 72 Oldstyle',
+		'Bodoni 72 Smallcaps',
+		'Bradley Hand',
+		'Brush Script MT',
+		'Chalkboard',
+		'Chalkboard SE',
+		'Chalkduster',
+		'Charter',
+		'Cochin',
+		'Comic Sans MS',
+		'Copperplate',
+		'Courier',
+		'Courier New',
+		'Didot',
+		'DIN Alternate',
+		'DIN Condensed',
+		'Futura',
+		'Geneva',
+		'Georgia',
+		'Gill Sans',
+		'Helvetica',
+		'Helvetica Neue',
+		'Herculanum',
+		'Hoefler Text',
+		'Impact',
+		'Lucida Grande',
+		'Luminari',
+		'Marker Felt',
+		'Menlo',
+		'Microsoft Sans Serif',
+		'Monaco',
+		'Noteworthy',
+		'Optima',
+		'Palatino',
+		'Papyrus',
+		'Phosphate',
+		'Rockwell',
+		'Savoye LET',
+		'SignPainter',
+		'Skia',
+		'Snell Roundhand',
+		'Tahoma',
+		'Times',
+		'Times New Roman',
+		'Trattatello',
+		'Trebuchet MS',
+		'Verdana',
+		'Zapfino'
+	]
+}
+
+let fontSet = 'mac'
+let pos = {
+	x: 0,
+	y: 0,
+	xdir: 3,
+	ydir: 3.2
+}
+
+let sliderAlpha, sliderSpeed, sliderStroke
+
+function setup() {
+	createCanvas(windowWidth, windowHeight)
+	pos.x = width / 2
+	pos.y = height / 2
+	if(navigator.platform.indexOf('Win') > -1) {
+		fontSet = 'win'
+	}
+
+	initGUI()
+}
+
+function initGUI(){
+	sliderAlpha = createSlider(0, 255, 10, 1)
+	sliderAlpha.position(5, 50).class('sliders')
+	sliderSpeed = createSlider(.1, 15, 1, .01)
+	sliderSpeed.position(5, 70).class('sliders')
+	sliderStroke = createSlider(0, 10, 0, .01)
+	sliderStroke.position(5, 90).class('sliders')
+}
+
+function draw() {
+	background(0, sliderAlpha.value())
+	fill(255)
+	stroke(0)
+	strokeWeight(sliderStroke.value())
+	textSize(50)
+	pos.x += pos.xdir * sliderSpeed.value()
+	if(pos.x >= width || pos.x <= 0) {
+		pos.xdir *= -1
+		textFont(random(fonts[fontSet]))
+	}
+
+	pos.y += pos.ydir * sliderSpeed.value()
+	if(pos.y >= height || pos.y <= 0) {
+		pos.ydir *= -1
+		textFont(random(fonts[fontSet]))
+	}
+	text('coming soon', pos.x, pos.y)
+}
+</script>
+
+</body>
+</html>
