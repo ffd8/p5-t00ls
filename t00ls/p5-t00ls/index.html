@@ -230,18 +230,25 @@ function draw() {
 	stroke(0)
 	strokeWeight(sliderStroke.value())
 	textSize(50)
+
+	let txt = 'coming soon'
+	let txtWidth = textWidth(txt)/2
+	// print(txtWidth)
+
 	pos.x += pos.xdir * sliderSpeed.value()
-	if(pos.x >= width || pos.x <= 0) {
+	if(pos.x >= width - txtWidth || pos.x <= txtWidth) {
 		pos.xdir *= -1
 		textFont(random(fonts[fontSet]))
 	}
 
 	pos.y += pos.ydir * sliderSpeed.value()
-	if(pos.y >= height || pos.y <= 0) {
+	if(pos.y >= height-25 || pos.y <= 25) {
 		pos.ydir *= -1
 		textFont(random(fonts[fontSet]))
 	}
-	text('coming soon', pos.x, pos.y)
+
+	textAlign(CENTER, CENTER)
+	text(txt, pos.x, pos.y)
 }
 </script>
 
