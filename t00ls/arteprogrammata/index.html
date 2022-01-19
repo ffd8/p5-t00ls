@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>ArteProgrammata</title>
+	<meta charset="utf-8">
+	<!-- Compiled w/ P5LIVE, http://github.com/ffd8/p5live -->
+	<style type="text/css">
+		body{
+			margin:0;
+			overflow:hidden;
+		}
+		canvas{
+			position:fixed;
+			top:0;
+			left:0;
+			z-index:-1;
+			width:100vw;
+			height:100vh;
+			margin:0;
+		}
+	</style>
+	<script type="text/javascript">
+		// eco-mode = only render if window focused
+		window.onblur = function () {
+			noLoop();
+		};
+		window.onfocus = function () {
+			loop();
+		};
+	</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+//AP-DEF_002
+
+/* CUSTOM FUNCTIONS FOR P5LIVE */
+// keep fullscreen if window resized
+function windowResized() {
+	resizeCanvas(windowWidth, windowHeight);
+}
+
+// custom ease function
+function ease(iVal, oVal, eVal){
+	return oVal += (iVal - oVal) * eVal;
+}
+
+// processing compatibility
+function println(msg){
+	print(msg);
+}
+
+
+var credits = { 
+	names : [ 
+		`Erica.David` // link to website if you have it <a href="URL" target="_blank">first.lastname</a> 
+		,`Giulia.Zafferani` 
+	] 
+	,class : `MA` 
+	,description : `On 15 May 1962, the 'Arte Programmata' exhibition opened in the Olivetti shop in Milan. 
+	The name was given by Bruno Munari, who inspired the initiative, while the theorisation of kinetic art as 
+	a paradigm of the 'open work' came from Umberto Eco.
+    Many artists were involved, including members of Group T (Anceschi, Boriani, Colombo, Devecchi, Varisco), Group N 
+    (Biasi, Costa, Chiggio, Landi, Massironi),as well as Enzo Mari and Bruno Munari.
+    The works on display were an important symbol of Italy in 'the boom' years and of the virtuous union 
+    between the artistic avant-garde and industrial research.
+    The intention of this tool is to give a tribute to the works displayed during this pioneering exhibition by 
+    creating optical illusions and kinetic variations inspired by them.
+    ` 
+} 
+
+
+
+let Menu = 0
+let xGUI, yGUI, xoff, elmBG, elm
+let myTrickBtt,  wrapperB
+let mytextLabel = ['Elements', 'Speed', 'Audio Reaction', 'Size', 'Color', 'Show reference']
+let sliderGrid, sliderSpeed, sliderAmpEase, sliderSize //that should be an array??
+let optEnable = false
+let border, grid, layer3d // sketch scacchiera
+let guiHolder, mouseOverRef
+let img, img2, img3, img4
+let showInfo = false
+
+function preload(){
+	img = loadImage("data/generatore-n-10-gruppo-mid.JPG")
+	img2 = loadImage("data/struttura-enzo-mari.PNG")
+	img3 = loadImage("data/rilievo-ottico.dinamico-gruppo-n.JPG")
+	img4 = loadImage("data/023interferenzalineare18.JPG")
+}
+
+//------------------------------------------------------------------------------------
+function setup() {
+	createCanvas(windowWidth, windowHeight, WEBGL)
+	layer3d = createGraphics(width / 2, height / 2, WEBGL)
+
+	// GUI 
+	buildGUI()
+	
+	setupAudio();
+
+}
+
+
+function imageReference(name){
+	push()
+	imageMode(CENTER)
+	let imgscale = .5
+	translate(0,0, 50)
+	texture(name)
+	noStroke()
+	plane(name.width*imgscale, name.height*imgscale )
+
+	pop()
+} 
+		
+
+
+//------------------------------------------------------------------------------------
+function draw() {
+	/* audio vars: amp, ampEase, fft, waveform */
+	updateAudio();
+	
+	angleMode(RADIANS)
+	
+	// Enable orbit control ------------------------------------------------------------
+	if(optEnable) { 
+		orbitControl()
+
+		myTrickBtt.style('background-color', '#7733FF')
+		myTrickBtt.style('color', '#fffff')
+
+	} else if(optEnable == false) {
+		camera(0, 0, (height / 2) / tan(PI / 6), 0, 0, 0, 0, 1, 0)
+		myTrickBtt.style('background-color', '#000000')
+		myTrickBtt.style('color', '#fffff')
+	}
+
+	
+	// SKETCH 0 ---------------------------------------------------------------------------
+	if(Menu == 0) {
+		
+		push()
+		background(sliderColor.value())
+		
+		push()
+		angleMode(DEGREES)
+		noFill()
+
+		let lc = sliderGrid.value() * sliderSize.value()
+		for(var i = 0; i < lc; i++) {
+
+			for(var a = 0; a < 360; a += sliderGrid.value()) {
+				var rad = i * 2
+				var x = rad * cos(a)
+				var y = rad * sin(a)
+				var z = sin(frameCount * sliderSpeed.value() + i * 5) * ampEase / sliderAmpEase.value()
+
+				translate(x, y, z)
+				rotateZ(frameCount * .01 % 90)
+
+				let colMap = map(i, 0, lc - 1, 0, 255)
+				stroke(sliderColor.value())
+				strokeWeight(0.1)
+				fill(255 - sliderColor.value())
+				circle(0, 0, sliderSize.value())
+			}
+		}
+		pop()
+
+		if (showInfo == true) {
+	    	push()
+	    	mouseOverRef.style('color', '#7733FF')
+	    	imageReference(img);
+			pop()
+		 } else if(showInfo  == false) {
+			mouseOverRef.style('color', '#ffffff')
+		 }
+		
+		pop()
+
+	
+		// SKETCH 1 ---------------------------------------------------------------------------
+	} else if(Menu == 1) {
+
+		push()
+		angleMode(RADIANS)
+		background(sliderColor.value())
+		fill(255 - sliderColor.value())
+		noStroke()
+		lights()
+		pointLight(250, 250, 250, mouseX, mouseY, 100)
+
+		let loopCount = sliderGrid.value()
+		let size = width / loopCount
+
+		for(let i = 0; i < loopCount; i++) {
+			let dist = width / loopCount
+			let x = i * dist
+
+			for(let j = 0; j < loopCount; j++) {
+				let y = j * dist
+
+				push()
+				translate(-width / 2 + x, -height / 2 + y) //+ size / 2 ????
+				let planeSound = ampEase / sliderAmpEase.value() * sliderSpeed.value()
+				rotateX(sin(i / TWO_PI) * planeSound + cos(j / TWO_PI) * planeSound)
+				plane(size, size)
+				pop()
+			}
+		}
+		
+		if (showInfo == true) {
+	    	push()
+	    	mouseOverRef.style('color', '#7733FF')
+	    	imageReference(img2);
+			pop()
+		 } else if(showInfo  == false) {
+			mouseOverRef.style('color', '#ffffff')
+		}
+		
+		pop()
+
+
+		//SKETCH 2 ---------------------------------------------------------------------------
+	} else if(Menu == 2) {
+
+		push()
+		angleMode(DEGREES)
+		background(0)
+		
+			// lines in bg sketch
+			push()
+			stroke(255)
+			let mapSW = map(sliderSize.value(), 5, 10, 1, 3)
+			strokeWeight(mapSW)
+	
+			let loopCount = sliderSize.value() * 30
+			for(let k = 0; k < loopCount; k++) {
+				let myX = map(k, 0, loopCount, -width / 2, width / 2)
+				line(myX, -height / 2, myX, height / 2)
+			}
+			pop()
+		
+		// magic circle :)
+		push()
+		noFill()
+		stroke(0)
+		strokeWeight(mapSW)
+
+		for(var i = 0; i < 200; i++) {
+			push()
+			rotateZ(sin(frameCount + i) * 255)
+			circle((ampEase * sliderAmpEase.value()) * sliderSpeed.value(), 0, (sliderGrid.value() - i) * sliderSize.value(), (sliderGrid.value() - i) * sliderSize.value())
+			pop()
+		}
+		
+		if (showInfo == true) {
+	    	push()
+	    	mouseOverRef.style('color', '#7733FF')
+	    	imageReference(img3);
+			pop()
+		 } else if(showInfo  == false) {
+			mouseOverRef.style('color', '#ffffff')
+		}
+			
+		pop()
+
+
+
+		//SKETCH 3 ---------------------------------------------------------------------------
+	} else if(Menu == 3) {
+		
+		//pattern
+		push()
+		layer3d.reset() // reset the matric
+		layer3d.clear()
+		layer3d.background(0)
+		layer3d.noStroke()
+		grid = sliderGrid.value()
+		border = sliderGrid.value() / 2
+		layer3d.translate(-width / 2, -height / 2)
+	
+		let c = 0;
+		for(let i = 0; i < width; i += grid) {
+			for(let j = 0; j < height; j += grid) {
+				
+				layer3d.fill(sin(c * frameCount * .0005 % (sliderSize.value() + sliderColor.value())) * 255)
+				//fill(abs(sin(frameCount * sSpeed.value() / 1000 + c * sModular.value())) * 255)
+				let s = grid
+				layer3d.rect(border + i, border + j, s)
+				c++
+			}
+		}
+		pop()
+
+	
+		push()
+		background(0)
+		angleMode(DEGREES)
+		
+		let col = 4
+		let row = 3
+		let size = width / col
+		for(let i = 0; i < col; i++) {
+			let dist = width / col
+			let x = i * dist
+			for(let j = 0; j < row; j++) {
+				let y = j * dist
+
+				noStroke()
+				texture(layer3d)
+				push()
+				let offX = i
+				translate(-width / 2 + size / 2 + x + offX, -height / 2.5 + y, 0)
+				
+					push()
+					rotateZ(90*i + 90 * j)
+					plane((width / col))
+					pop()
+			
+				pop()
+
+			}
+		}
+		
+		if (showInfo == true) {
+	    	push()
+	    	mouseOverRef.style('color', '#7733FF')
+	    	imageReference(img4);
+			pop()
+		 } else if(showInfo  == false) {
+			mouseOverRef.style('color', '#ffffff')
+			}
+		
+		pop()
+		
+	}
+	
+
+}
+
+
+function updateGrid() {
+	grid = sliderGrid.value()
+	border = grid / 2
+}
+
+
+// FUNCTIONS ---------------------------------------------------------------------------
+
+function buildGUI() {
+	
+	guiHolder = createDiv()
+		.class('guiholder')
+
+	let myMenu = createSelect()
+		.parent(guiHolder)
+		.class('Menu')
+	
+	myMenu.option('Generatore n.10 – Gruppo Mid', 0)
+	myMenu.option('Struttura 726 - Enzo Mari', 1)
+	myMenu.option('Rilievo ottico dinamico – Gruppo N', 2)
+	myMenu.option('Interferenza lineare 18 – Ennio Chiggio', 3)
+	
+	myMenu.changed(function() {
+		Menu = this.value() //Menu.value() = stessa cosa di = this.value()
+
+		if(this.value() == 0) {
+			optionGrid.show()
+			optionSpeed.show()
+			optionAmpEase.show()
+			optionSize.show()
+			optionColor.show()
+			
+		} else if(this.value() == 1) {
+			optionGrid.show()
+			optionSpeed.show()
+			optionAmpEase.show()
+			optionSize.hide()
+			optionColor.show()
+
+		} else if(this.value() == 2) {
+			optionGrid.show()
+			optionSpeed.show()
+			optionAmpEase.show()
+			optionSize.show()
+			optionColor.hide()
+
+		} else if(this.value() == 3) {
+			optionGrid.show()
+			optionSpeed.hide()
+			optionAmpEase.hide()
+			optionSize.show()
+			optionColor.show()
+		}
+	})
+	
+	//sliderGrid, sliderSpeed, sliderAmpEase, sliderSize
+	
+	//slider Grid
+	optionGrid = createDiv()
+		.parent(guiHolder)
+		.class('optiongrid')
+		
+	createDiv('Elements')
+		.parent(optionGrid) // place inside gui div 
+		.class('label') // class for CSS 
+
+	sliderGrid = createSlider(20, 50, 0, 1)
+		.parent(optionGrid)
+		.class('sliderGrid')
+		.input(function() {
+			background(this.value())
+		})
+		
+	// slider Speed
+	optionSpeed = createDiv()
+		.parent(guiHolder)
+		.class('optionspeed')
+
+	createDiv('Speed')
+		.parent(optionSpeed) 
+		.class('label') 
+
+	sliderSpeed = createSlider(.1, 1, 0.5, .1)
+		.parent(optionSpeed)
+		.class('sliderSpeed')
+		.input(function() {
+			background(this.value())
+		})
+		
+	// slider Audio Reaction
+	optionAmpEase = createDiv()
+		.parent(guiHolder)
+		.class('optionAudio')
+
+	createDiv('Audio Reaction')
+		.parent(optionAmpEase) 
+		.class('label') 
+
+	sliderAmpEase = createSlider(1, 10, 5)
+		.parent(optionAmpEase)
+		.class('sliderAudio')
+		.input(function() {
+			background(this.value())
+		})
+		
+		// slider Size
+	optionSize = createDiv()
+		.parent(guiHolder)
+		.class('optionsize')
+
+	createDiv('Size')
+		.parent(optionSize) 
+		.class('label') 
+
+	sliderSize = createSlider(5, 10, 0, 1)
+		.parent(optionSize)
+		.class('sliderSize')
+		.input(function() {
+			background(this.value())
+		})
+		
+			// slider Color
+	optionColor = createDiv()
+		.parent(guiHolder)
+		.class('optionsize')
+
+	createDiv('Color')
+		.parent(optionColor) 
+		.class('label') 
+
+	sliderColor = createSlider(0, 255, 0, 2)
+		.parent(optionColor)
+		.class('sliderColor')
+		.input(function() {
+			background(this.value())
+		})
+		
+	myTrickBtt = createButton('Allow 3D movement', false)
+	
+	.parent(guiHolder)
+	.class('mytrickBtt')
+	.mousePressed(() => {
+		optEnable = !optEnable;
+	})	
+	
+	mouseOverRef = createDiv('Show reference')
+		.parent(guiHolder) 
+		.class('MouseOver')
+		
+	mouseOverRef.mouseOver(() => showInfo = true);
+	mouseOverRef.mouseOut(() => showInfo = false);	
+
+	;
+
+	createElement('style', `
+		*{
+			box-sizing: border-box;	}
+		
+		.guiholder{
+			position:fixed;
+			right: 30px;
+			top: 10px;
+			width: 280px;
+			height: 505px;
+			//border: 5px solid #fff;
+			border-radius: 1px;
+			background: rgba(0, 0, 0, .5);
+			padding: 10px;
+			color: #fff;
+			font-family: sans-serif;
+			font-size: 9pt;
+			line-height: 35px;
+		}
+		
+			input[type='range'] {
+		      overflow: hidden;
+		      width: 140px;
+		      -webkit-appearance: none;
+		      background-color: #ffffff;
+		    }
+		    
+		     input[type='range']::-webkit-slider-runnable-track {
+		      height: 10px;
+		      -webkit-appearance: none;
+		      color: #13bba4;
+		      margin-top: -1px;
+		    }
+		    
+		    input[type='range']::-webkit-slider-thumb {
+		      width: 10px;
+		      -webkit-appearance: none;
+		      height: 10px;
+		      cursor: ew-resize;
+		      background: #a9a9a9;
+		      box-shadow: -80px 0 0 80px #7733FF;
+		    }
+		    
+		  .title{
+		  	font-size: 150%;
+		  	color: white;
+		  }
+		  
+		  .Menu{
+		  	background-color: #000000;
+			color:#ffffff;
+			border-color: #ffffff;
+			border-width: 1.5px;
+		  	
+		  }
+		 
+		  .optiongrid{
+		   	//background: black;
+		   //	margin: 0 0 0 0;
+		   	//padding: 0 0 0 10px;
+		   	width: 100%;
+		   }
+		   
+		   .label{
+			padding: 0 0  0 0;
+		   	font-size: 10pt;
+		   	color: #fff;
+		   	font-family: sans-serif;
+		   	//text-decoration:underline;
+		   	//border-top: 1px solid #fff;
+		    }
+		    
+		    .sliderGrid{
+		    	margin: 0, -100px 0 0;
+		    }
+		    
+		    .mytrickBtt{
+		    background-color:#000000;
+			color: #ffffff;
+			border-color: #ffffff;
+			border-width: 1px;
+			position: absolute;
+			bottom:   15px;
+		    }
+		    
+		    .MouseOver{
+		    margin: 20px 0 0 0;
+			padding: 10px 160px  0 0;
+		   	font-size: 10pt;
+		   	color: #fff;
+		   	font-family: sans-serif;
+		   	text-decoration:underline;
+		   	border-top: 1px solid #fff;
+		   	position: absolute;
+			bottom:  50px;
+		   	
+		    }
+	`)
+	
+	// check hide menu function
+	let wrapperBox = createDiv('')
+		.class('wrapping')
+		
+	let	checkbutt = createCheckbox('', false)
+		checkbutt.changed(myCheckedEvent)
+		.parent(wrapperBox)
+		.class('check')
+		
+	createElement('style', `
+		.wrapping{
+			position:fixed;
+			right:30px;
+			top: 660px;
+			width: 30px;
+			height: 30px;
+			//border: 1px solid #fff;
+		}
+		
+		.check{
+			transform: scale(1.5);
+			  
+		}
+	`)
+}
+
+function myCheckedEvent() {
+  if (this.checked()) {
+    console.log('Checking!');
+    guiHolder.hide();
+  } else {
+    console.log('Unchecking!');
+    guiHolder.show();
+  }
+}
+
+// AUDIO ----------------------------------------------------------------------------
+
+/* AUDIO INIT */
+let mic, fftRaw, fft = [],
+	waveform = [],
+	amp = 0.0,
+	ampStereo = {
+		l: 0.0,
+		r: 0.0
+	},
+	ampEase = 0.0,
+	numBins = 512,
+	bands = 12;
+
+function setupAudio() {
+	userStartAudio();
+	mic = new p5.AudioIn();
+	mic.start();
+	fftRaw = new p5.FFT(0.75, numBins);
+	fftRaw.setInput(mic);
+}
+
+function updateAudio() {
+	fftRaw.analyze();
+	amp = mic.getLevel() * 1000; // average mixed amplitude
+	ampStereo.l = mic.amplitude.getLevel(0) * 500; // average left amplitude
+	ampStereo.r = mic.amplitude.getLevel(1) * 500; // average right amplitude
+	ampEase = ease(amp, ampEase, 0.075); // smooth 'amp'
+	waveform = fftRaw.waveform(); // array (-1, 1)
+	fft = fftRaw.logAverages(fftRaw.getOctaveBands(bands)); // array (0, 255)
+}
+
+function saveFrame(toolName){ 
+	let timestamp = (new Date()).toISOString().replace(/[^0-9]/g, '').slice(0, -3); 
+	var filename = toolName + '_' + timestamp + '.png'; // with timestamp 
+	//var filename = toolName + '.png'; // without timestamp 
+	save(filename);  // use to save entire canvas 
+	// layer.save(filename); // use to save specific layer only 
+} 
+</script>
+
+</body>
+</html>
