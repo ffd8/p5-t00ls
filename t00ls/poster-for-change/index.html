@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>211213_RLH_Final</title>
+	<meta charset="utf-8">
+	<!-- Compiled w/ P5LIVE, http://github.com/ffd8/p5live -->
+	<style type="text/css">
+		body{
+			margin:0;
+			overflow:hidden;
+		}
+		canvas{
+			position:fixed;
+			top:0;
+			left:0;
+			z-index:-1;
+			width:100vw;
+			height:100vh;
+			margin:0;
+		}
+	</style>
+	<script type="text/javascript">
+		// eco-mode = only render if window focused
+		window.onblur = function () {
+			noLoop();
+		};
+		window.onfocus = function () {
+			loop();
+		};
+	</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+//211213_RLH_Final
+
+/* CUSTOM FUNCTIONS FOR P5LIVE */
+// keep fullscreen if window resized
+function windowResized() {
+	resizeCanvas(windowWidth, windowHeight);
+}
+
+// custom ease function
+function ease(iVal, oVal, eVal){
+	return oVal += (iVal - oVal) * eVal;
+}
+
+// processing compatibility
+function println(msg){
+	print(msg);
+}
+
+
+// Right Livelihood Award Campaign 
+// Iman Aram, Stella Auburger
+
+var credits = { 
+	names : [ 
+		`Stella.Auburger` // link to website if you have it <a href="URL" target="_blank">first.lastname</a> 
+		,`Iman.Aram` 
+	] 
+	,class : `MA` 
+	,description : `'The Change-Maker' is a generative poster tool for the Right Livelihood Award to raise awareness of this foundation worldwide.` 
+} 
+
+function saveFrame(toolName){ 
+	let timestamp = (new Date()).toISOString().replace(/[^0-9]/g, '').slice(0, -3); 
+	var filename = posterForChange + '_' + timestamp + '.png'; // with timestamp 
+	//var filename = toolName + '.png'; // without timestamp 
+	poster.save(filename);  // use to save entire canvas 
+	// layer.save(filename); // use to save specific layer only 
+} 
+
+let poster, scl = 1.0
+let img, font, colors
+let bgColor
+let sliderVertex, sliderSize, sliderRotate, sliderTextSize
+let sliderRotateDefault = 118
+let sliderTextSizeDefault = 280
+let colorButton, saveButton, resetButton
+let Select01
+let Select02
+let border = 40
+let maxVertex = 0.04
+let defaultVertex = .001
+let guiDiv
+let divWidth
+
+
+function preload() {
+	imgLogoW = loadImage("data/images/RL_Logo_White.png");
+	imgLogoB = loadImage("data/images/RL_Logo_Black.png");
+	imgChangeB = loadImage("data/images/change_poster.png");
+	imgChangeW = loadImage("data/images/change_poster_w.png");
+	imgChangeG = loadImage("data/images/change_poster_g.png");
+	editorialFont = loadFont("data/fonts/PPEditorialNew-Regular.otf");
+	sansFont = loadFont("data/fonts/PPNeueMontreal-Book.otf")
+	font = loadFont("data/fonts/RLH-Regular.ttf");
+	imgNoise = loadImage("data/images/noise.jpg");
+}
+
+
+function setup() {
+	createCanvas(windowWidth, windowHeight)
+	// pixelDensity(1)
+	poster = createGraphics(1191, 1684) // A2, 72dpi
+	scl = (height - 100) / poster.height
+	imageMode(CENTER)
+	angleMode(DEGREES)
+	textAlign(CENTER)
+	textFont(font)
+	colors = [color(0), color(255), color(252, 106, 73), color(243, 239, 121), color(130, 12, 26), color(209, 226, 240), color(0, 44, 78), color(84, 168, 147), color(36, 73, 70), color(240, 227, 209), color(250, 204, 212)]
+	bgColor = random(colors)
+
+	//sliders setup ---------------------------------------------------------------------
+	guiDiv = createDiv('')
+	guiDiv.style('background', `#f5f5ee`)
+	guiDiv.size(width*.2,620)
+	guiDiv.position(width*.7, 50)
+	
+	rightDiv = 20 // space from right side of the box
+
+	//change the div size depending on windowWidth size ---------------------------------------------------------------------
+	if(windowWidth > 1000) {
+	divWidth = width*.3
+}else {
+	divWidth = width*.2
+}
+
+	labelVertex = createP('shape');
+	labelVertex.parent(guiDiv)
+	labelVertex.style('font-family', 'sans-serif')
+	labelVertex.position(190 + rightDiv, 303);
+	
+	sliderVertex = createSlider(defaultVertex, maxVertex, defaultVertex, .006)
+	sliderVertex.parent(guiDiv)
+	sliderVertex.position(rightDiv, 320)
+	sliderVertex.style('width', '170px')
+	sliderVertex.input(function() { 
+		genType('A', sliderSize.value())
+	}) 
+
+	labelSize = createP('size');
+	labelSize.parent(guiDiv)
+	labelSize.style('font-family', 'sans-serif')
+	labelSize.position(190 + rightDiv, 343);
+	
+	sliderSize = createSlider(poster.height*.9, poster.height*1.8, poster.height*.94, 1)
+	sliderSize.parent(guiDiv)
+	sliderSize.position(rightDiv, 360)
+	sliderSize.style('width', '170px')
+	sliderSize.input(function() { 
+		genType('A', sliderSize.value()) 
+	})
+
+	labelTextSize = createP('text size');
+	labelTextSize.parent(guiDiv)
+	labelTextSize.style('font-family', 'sans-serif')
+	labelTextSize.position(190 + rightDiv, 140);
+	
+	sliderTextSize = createSlider(80, 280, sliderTextSizeDefault, .01)
+	sliderTextSize.parent(guiDiv)
+	sliderTextSize.position(rightDiv, 157)
+	sliderTextSize.label
+	sliderTextSize.style('width', '170px')
+
+	labelRotate = createP('rotate');
+	labelRotate.parent(guiDiv)
+	labelRotate.style('font-family', 'sans-serif')
+	labelRotate.position(190 + rightDiv, 383);
+	
+	sliderRotate = createSlider(111, 135, sliderRotateDefault, .1)
+	sliderRotate.parent(guiDiv)
+	sliderRotate.position(rightDiv, 400)
+	sliderRotate.style('width', '170px')
+
+	changefor = createP('CHANGE FOR');
+	changefor.parent(guiDiv)
+	changefor.style('font-family', 'sans-serif')
+	changefor.style('font-size', '20px')
+	changefor.position(rightDiv, 25 + rightDiv);
+
+	// color button ------------------------------------------------------------------------------------
+	colorButton = createButton('COLOR'); 
+	colorButton.parent(guiDiv)
+	colorButton.position(rightDiv, 235); 
+	colorButton.mousePressed(changeBG);
+	colorButton.style('font-size', '20px')
+	colorButton.style('text-align', 'center')
+	colorButton.style('color', '#fb5b48')
+	colorButton.style('background', '#f5f5ee')
+	colorButton.style('width', '140px')
+	colorButton.style('border', '1.5px solid')
+	colorButton.style('border-radius', '20px')
+
+	// save button ------------------------------------------------------------------------------
+	// saveButton = createButton('SAVE');
+	// saveButton.parent(guiDiv)
+	// saveButton.position(rightDiv, 590)
+	// saveButton.mousePressed(saveFrame);
+	// saveButton.style('font-size', '20px')
+	// saveButton.style('text-align', 'center')
+	// saveButton.style('color', '#f5f5ee')
+	// saveButton.style('background', '#fb5b48')
+	// saveButton.style('width', '140px')
+	// saveButton.style('border', '1.5px #fb5b48')
+	// saveButton.style('border-radius', '20px')
+
+	// reset button ------------------------------------------------------------------------------------
+	resetButton = createButton('RESET')
+	resetButton.parent(guiDiv)
+	resetButton.position(rightDiv, 590)
+	resetButton.mousePressed(resetSetup)
+	resetButton.style('font-size', '20px')
+	resetButton.style('text-align', 'center')
+	resetButton.style('color', '#f5f5ee')
+	resetButton.style('background', '#fb5b48')
+	resetButton.style('width', '140px')
+	resetButton.style('border', '1.5px #fb5b48')
+	resetButton.style('border-radius', '20px')
+
+	//drop-down > voices of, encouraging, empowering --------------------------------------------------------------
+	Select01 = createSelect(); // create dropdown
+	Select01.parent(guiDiv)
+	Select01.position(rightDiv, rightDiv) // set position
+	Select01.option('VOICES OF') // add option
+	Select01.option('ENCOURAGING')
+	Select01.option('EMPOWERING')
+	Select01.selected('VOICES OF');
+	Select01.style('font-size', '20px')
+	Select01.style('text-align', 'center')
+	Select01.style('color', '#fb5b48')
+	Select01.style('background', '#f5f5ee')
+	Select01.style('width', '180px')
+	Select01.style('border', '1.5px solid')
+	Select01.style('border-radius', '20px')
+	Select01.style('outline', 'none')
+
+	//drop-down --for democracy, etc. ------------------------------------------------------------------------------------
+	Select02 = createSelect(); // create dropdown
+	Select02.parent(guiDiv)
+	Select02.position(rightDiv, 90 + rightDiv); // set position
+	Select02.option('HUMAN RIGHTS'); // add option 
+	Select02.option('CULTURE EDUCATION');
+	Select02.option('DEMOCRACY');
+	Select02.option('ECONOMIC JUSTICE');
+	Select02.option('GENDER EQUALITY');
+	Select02.option('HEALTH');
+	Select02.option('PEACE');
+	Select02.option('SUSTAINABILITY');
+	Select02.selected('HUMAN RIGHTS'); //set default
+	Select02.style('font-size', '20px')
+	Select02.style('text-align', 'center')
+	Select02.style('color', '#fb5b48')
+	Select02.style('background', '#f5f5ee')
+	Select02.style('width', '240px')
+	Select02.style('border', '1.5px solid')
+	Select02.style('border-radius', '20px')
+	Select02.style('outline', 'none')
+
+
+	//title div ------------------------------------------------------------------------------------
+	changemakers = createDiv('The Change-Makers')
+	changemakers.style("font-family: PPEditorialNew-Regular")
+	changemakers.style('font-size', '40px')
+	changemakers.style('background', `#f5f5ee`) //change color later = #f5f5ee/
+	txtB = createP('Your support makes the difference.')
+	txtB.parent(changemakers)
+	txtB.style("font-family: PPNeueMontreal-Book")
+	txtB.style('font-size', '20px')
+	txt = createP('\n\nJoin our community through the creation and exchange \nof a Poster for Change-Makers.\nUse this tool to select your favorite options, and then \nyou can download, print, and share it!')
+	txt.parent(changemakers)
+	txt.style('font-size', '15px')
+	txt.style("font-family: PPNeueMontreal-Book")
+	changemakers.size(divWidth,620)
+	changemakers.position(50, 50)
+
+	//sculptureShape -- text to point
+	genType('A', sliderSize.value())
+	}
+
+
+function draw() {
+
+	// draw on poster layer -------------------------------------------
+	poster.reset()
+	poster.translate(poster.width / 2, poster.height / 2)
+	poster.background(bgColor)
+	poster.noFill()
+	poster.stroke(255)
+	poster.strokeWeight(50)
+	poster.textAlign(CENTER, CENTER)
+	poster.noStroke()
+	poster.fill(255)
+	poster.strokeWeight(50)
+	poster.randomSeed(1)
+	poster.noiseSeed(1)
+
+	//draw sculpture shape ---------------------------------------------------------
+	poster.imageMode(CENTER)
+	poster.blendMode(DIFFERENCE)
+	poster.push() 
+		poster.translate(10, -poster.height*.01-poster.height/4.3)
+		poster.beginShape();
+		for(let i = 0; i < points.length; i++) {
+			let p = points[i]
+			let xScl = sin(i * .031 + frameCount * .021) * sin(frameCount * .01) * map(mouseX, 0, width, .01, .5)
+			let yScl = sin(i * .039 + frameCount * .04) * sin(frameCount * .002) * map(mouseY, 0, height, .01, .5)
+			let x = map(p.x, poster.width * xScl, poster.width * (1 + xScl), 0, poster.width)
+			let y = map(p.y, poster.height * yScl, poster.height * (yScl + 1), 0, poster.height)
+			vertex(p.x, p.y)
+		}
+		poster.endShape(CLOSE)
+	poster.pop()
+
+	//circles ---------------------------------------------------------------------------
+	poster.push()
+		poster.translate(poster.width*.2-poster.width, poster.height*.4-poster.height)
+		poster.blendMode(DIFFERENCE)
+		poster.textFont(font) //RLH.ttf
+		poster.textAlign(CENTER)
+		let textSliderSize = sliderSize.value()-poster.height*1.5
+		poster.textSize(2500+textSliderSize)
+		let rot = sliderRotate.value()
+		angleMode(DEGREES); // Change the mode to RADIANS
+		let a = atan2(rot - poster.width*.1, rot*5 - poster.height/3.2);
+		let b = atan2(rot - poster.width*.11, rot*5 - poster.height/3.3);
+		
+		poster.push()
+			poster.rotate(a*.1); // variable a stays the same
+			poster.text('B', -poster.width*.93+poster.width*2, poster.height-poster.height*.42)
+		poster.pop()
+		
+		poster.push()
+			poster.rotate(-a*.1)
+			poster.text('C', -poster.width*.815+poster.width*2, poster.height-poster.height*.85)
+		poster.pop()
+		
+		poster.push()
+			poster.rotate(b*.1); // variable a stays the same
+			poster.text('D', -poster.width*.1+poster.width*.2, poster.height-poster.height*.55)
+		poster.pop()
+	poster.pop()
+	
+	//logo and "change" handwriting -------------------------------------------------------------------
+	poster.textSize(250)
+	poster.fill(random(colors))
+	poster.noStroke()
+	poster.textFont(editorialFont)
+	
+	poster.blendMode(BLEND)
+	
+	if(brightness(bgColor) > 60){
+		poster.fill(0)
+		poster.push()
+			poster.scale(1.06)
+			poster.image(imgChangeB, -22, -210) //change handwriting
+		poster.pop()
+		poster.image(imgLogoB, poster.width / 7 - poster.width / 2, poster.height / 20 - poster.height / 2, imgLogoB.width / 2, imgLogoB.height / 2)
+	}else {
+		poster.fill(255)
+		poster.push()
+			poster.scale(1.06)
+			poster.image(imgChangeW, -22, -210) //change handwriting
+		poster.pop()
+		poster.image(imgLogoW, poster.width / 7 - poster.width / 2, poster.height / 20 - poster.height / 2, imgLogoB.width / 2, imgLogoB.height / 2)
+	}
+	if(brightness(bgColor) == 0 || brightness(bgColor) == 100){
+		poster.push()
+			poster.scale(1.06)
+			poster.image(imgChangeG, -22, -210) //change handwriting
+		poster.pop()
+	}
+
+	//poster's texts -----------------------------------------------------------------------
+	poster.textSize(35)
+	poster.textAlign(LEFT, CENTER)
+	poster.text('rightlivelihood.org', 0 - poster.width / 2.01 + border, poster.height / 2.13) //website
+	poster.textAlign(RIGHT, CENTER)
+	poster.text('the change-makers', poster.width / 2.02-border, poster.height / 2.13) //slogan
+	
+	poster.blendMode(DIFFERENCE)
+	
+	poster.push()	
+		poster.translate(0-poster.width/2,0-poster.height/2)
+	
+		if(Select01.value() == 'VOICES OF') {
+			poster.fill(255)
+			poster.noStroke()
+			poster.textSize(100)
+			poster.textAlign(LEFT)
+			poster.text('VOICES OF', border, poster.height/2-435)
+		} else if(Select01.value() == 'ENCOURAGING') {
+			poster.fill(255)
+			poster.noStroke()
+			poster.textSize(100)
+			poster.textAlign(CENTER)
+			poster.text('ENCOURAGING', poster.width/2, poster.height/2-435)
+		} else if(Select01.value() == 'EMPOWERING') {
+			poster.fill(255)
+			poster.noStroke()
+			poster.textSize(100)
+			poster.textAlign(RIGHT)
+			poster.text('EMPOWERING', poster.width-border, poster.height/2-435)
+		}
+	
+		if(Select02.value() == 'HUMAN RIGHTS') {
+			poster.fill(255)
+			poster.noStroke()
+			poster.textSize((sliderTextSize.value()))
+			poster.textLeading((sliderTextSize.value()*0.98))
+			poster.textAlign(LEFT)
+			poster.text('for human rights', border, poster.height/2, poster.width-border);
+		} else if(Select02.value() == 'CULTURE EDUCATION') {
+			poster.fill(255)
+			poster.noStroke()
+			poster.textSize((sliderTextSize.value()-10))
+			poster.textLeading((sliderTextSize.value()*0.98-10))
+			poster.textAlign(RIGHT)
+			poster.text('for culture education', 0, poster.height / 2, poster.width-border);
+		} else if(Select02.value() == 'DEMOCRACY') {
+			poster.fill(255)
+			poster.noStroke()
+			poster.textSize((sliderTextSize.value()-25))
+			poster.textLeading((sliderTextSize.value()*0.98-25))
+			poster.textAlign(CENTER)
+			poster.text('for democracy', border, poster.height/2, poster.width-border);
+		} else if(Select02.value() == 'ECONOMIC JUSTICE') {
+			poster.fill(255)
+			poster.noStroke()
+			poster.textSize((sliderTextSize.value()))
+			poster.textLeading((sliderTextSize.value()*0.98))
+			poster.textAlign(LEFT)
+			poster.text('for economic justice', border, poster.height/2, poster.width-border);
+		} else if(Select02.value() == 'GENDER EQUALITY') {
+			poster.fill(255)
+			poster.noStroke()
+			poster.textSize((sliderTextSize.value()+20))
+			poster.textLeading((sliderTextSize.value()*0.98))
+			poster.textAlign(RIGHT)
+			poster.text('for gender equality', 0, poster.height/2, poster.width-border);
+		} else if(Select02.value() == 'HEALTH') {
+			poster.fill(255)
+			poster.noStroke()
+			poster.textSize((sliderTextSize.value()+25))
+			poster.textLeading((sliderTextSize.value()*0.98+25))
+			poster.textAlign(LEFT)
+			poster.text('for health', border, poster.height/2, poster.width-border);
+		} else if(Select02.value() == 'PEACE') {
+			poster.fill(255)
+			poster.noStroke()
+			poster.textSize((sliderTextSize.value()+20))
+			poster.textLeading((sliderTextSize.value()*0.98))
+			poster.textAlign(CENTER, CENTER)
+			poster.text('for peace', border, poster.height/2, poster.width-border);
+		} else if(Select02.value() == 'SUSTAINABILITY') {
+			poster.fill(255)
+			poster.noStroke()
+			poster.textSize((sliderTextSize.value()))
+			poster.textLeading((sliderTextSize.value()*0.98))
+			poster.textAlign(LEFT)
+			if(sliderTextSize.value() < 200){
+				poster.text('for sustainability', border, poster.height/2, poster.width-border);
+			} else if(sliderTextSize.value() > 200){
+			poster.text('for sustain- \nability', border, poster.height/2, poster.width-border);
+		}
+		}
+	poster.pop()
+	poster.blendMode(BLEND)
+
+	// interface -- draw scaled poster to screen --------------------------------------------------
+	background(244, 245, 238) // beige color website
+	rectMode(CORNER);
+	fill(0)
+	noStroke()
+	textSize(45)
+	textFont(editorialFont)
+	textAlign(LEFT)
+	image(poster, width / 2, height / 2, poster.width * scl, poster.height * scl) // scaled poster
+	
+
+	//poster's noise texture ------------------------------------------------------------------------------------
+	poster.push()
+		poster.blendMode(MULTIPLY)
+		poster.image(imgNoise, 0, 0)
+	poster.pop()
+}
+
+
+function changeBG() {
+	bgColor = random(colors)
+}
+
+
+function genType(txtString, txtSize) {
+	// grab bounding box of text
+	let bounds = font.textBounds(txtString, 0, 0, txtSize)
+	
+	// textToPoints(txt, x, y, size, options)
+	points = font.textToPoints(txtString, -bounds.w / 2, bounds.h / 2, txtSize, {
+		sampleFactor: maxVertex-sliderVertex.value(),
+		simplifyThreshold: 0
+	})
+}
+
+
+function genCircle1(txtString, txtSize) {
+	// grab bounding box of text
+	let bounds = font.textBounds(txtString, 0, 0, txtSize)
+	
+	// textToPoints(txt, x, y, size, options)
+	points1 = font.textToPoints(txtString, -bounds.w / 2, bounds.h / 2, txtSize, {
+		sampleFactor: maxVertex-sliderVertex.value(),
+		simplifyThreshold: 0
+	})
+}
+
+
+function mySelectEvent() {
+	let item = mySelect.value();
+	console.log(item + 'selected!');
+}
+
+
+function saveFrame() {
+	poster.save('PosterForChange.png')
+}
+
+function resetRect() {
+
+}
+
+function resetSetup() {
+	background(244, 245, 238) // beige color website
+	setup()
+}
+
+
+// function resetSliders(){
+// 	sliderTextSize.value(sliderTextSizeDefault)
+// 	sliderRotate.value(sliderRotateDefault)
+// 	sliderVertex.value(defaultVertex)
+// 	sliderSize.value(poster.height*.94)
+// 	Select01.selected('VOICES OF')
+// 	Select02.selected('HUMAN RIGHTS')
+// }
+</script>
+
+</body>
+</html>

@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>new_074</title>
+	<title>draw-GUI_002</title>
 	<meta charset="utf-8">
 	<!-- Compiled w/ P5LIVE, http://github.com/ffd8/p5live -->
-	<link rel="stylesheet" type="text/css" href="style.css">
 	<style type="text/css">
 		body{
 			margin:0;
@@ -31,26 +30,12 @@
 	</script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+<script type="text/javascript" src="html-to-image.min.js"></script>
 </head>
 <body>
 
 <script type="text/javascript">
-//coming soon
-
-// p5-t00ls credits
-var credits = {
-	"names" : [
-		"Coming Soon"
-	]
-	,"class" : ""
-	,"description" : "Guess what... coming soon."
-}
-
-function saveFrame(toolName){
-	let timestamp = (new Date()).toISOString().replace(/[^0-9]/g, '').slice(0, -3);
-	let filename = toolName + '_' + timestamp + '.png';
-	save(filename);
-}
+//draw-GUI_002
 
 /* CUSTOM FUNCTIONS FOR P5LIVE */
 // keep fullscreen if window resized
@@ -69,186 +54,535 @@ function println(msg){
 }
 
 
-let fonts = {
-	win: ['Arial',
-		'Arial Black',
-		'Bahnschrift',
-		'Calibri',
-		'Cambria',
-		'Cambria Math',
-		'Candara',
-		'Comic Sans MS',
-		'Consolas',
-		'Constantia',
-		'Corbel',
-		'Courier New',
-		'Ebrima',
-		'Franklin Gothic Medium',
-		'Gabriola',
-		'Gadugi',
-		'Georgia',
-		'HoloLens MDL2 Assets',
-		'Impact',
-		'Ink Free',
-		'Javanese Text',
-		'Leelawadee UI',
-		'Lucida Console',
-		'Lucida Sans Unicode',
-		'Malgun Gothic',
-		'Marlett',
-		'Microsoft Himalaya',
-		'Microsoft JhengHei',
-		'Microsoft New Tai Lue',
-		'Microsoft PhagsPa',
-		'Microsoft Sans Serif',
-		'Microsoft Tai Le',
-		'Microsoft YaHei',
-		'Microsoft Yi Baiti',
-		'MingLiU-ExtB',
-		'Mongolian Baiti',
-		'MS Gothic',
-		'MV Boli',
-		'Myanmar Text',
-		'Nirmala UI',
-		'Palatino Linotype',
-		'Segoe MDL2 Assets',
-		'Segoe Print',
-		'Segoe Script',
-		'Segoe UI',
-		'Segoe UI Historic',
-		'Segoe UI Emoji',
-		'Segoe UI Symbol',
-		'SimSun',
-		'Sitka',
-		'Sylfaen',
-		'Symbol',
-		'Tahoma',
-		'Times New Roman',
-		'Trebuchet MS',
-		'Verdana',
-		'Webdings',
-		'Wingdings',
-		'Yu Gothic'
+let libs = [
+	'https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.9.0/html-to-image.min.js'
+]
+
+var credits = {
+	names: [
+		`<a href="https://teddavis.org" target="_blank">Ted Davis</a> + MA/MDes Students, 2021<br><a href='http://thebaselschoolofdesign.ch' target='_blank'>Institute Digital Communication Environments</a><br>IDCE HGK FHNW`
 	],
-	mac: ['American Typewriter',
-		'Andale Mono',
-		'Arial',
-		'Arial Black',
-		'Arial Narrow',
-		'Arial Rounded MT Bold',
-		'Arial Unicode MS',
-		'Avenir',
-		'Avenir Next',
-		'Avenir Next Condensed',
-		'Baskerville',
-		'Big Caslon',
-		'Bodoni 72',
-		'Bodoni 72 Oldstyle',
-		'Bodoni 72 Smallcaps',
-		'Bradley Hand',
-		'Brush Script MT',
-		'Chalkboard',
-		'Chalkboard SE',
-		'Chalkduster',
-		'Charter',
-		'Cochin',
-		'Comic Sans MS',
-		'Copperplate',
-		'Courier',
-		'Courier New',
-		'Didot',
-		'DIN Alternate',
-		'DIN Condensed',
-		'Futura',
-		'Geneva',
-		'Georgia',
-		'Gill Sans',
-		'Helvetica',
-		'Helvetica Neue',
-		'Herculanum',
-		'Hoefler Text',
-		'Impact',
-		'Lucida Grande',
-		'Luminari',
-		'Marker Felt',
-		'Menlo',
-		'Microsoft Sans Serif',
-		'Monaco',
-		'Noteworthy',
-		'Optima',
-		'Palatino',
-		'Papyrus',
-		'Phosphate',
-		'Rockwell',
-		'Savoye LET',
-		'SignPainter',
-		'Skia',
-		'Snell Roundhand',
-		'Tahoma',
-		'Times',
-		'Times New Roman',
-		'Trattatello',
-		'Trebuchet MS',
-		'Verdana',
-		'Zapfino'
-	]
+	class: `Dozent`,
+	description: `In this course we explored generative design + creative-coding using <a href='https://p5js.org'>p5.js</a> via <a href='https://p5live.org' target='_blank'>P5LIVE</a>. <br><br>Once dangerous, we began developing custom tools using the DOM elements (sliders, buttons, checkboxes) to change variables throughout the code.<br><br>When creating your own tools, the possibilities of digital design becomes endless. Enjoy exploring these tools.<br><br>Want more? <br>Visit <a href="https://p5-tools.glitch.me/" target="_blank">2019 edition » p5-tools</a> !`
 }
 
-let fontSet = 'mac'
-let pos = {
-	x: 0,
-	y: 0,
-	xdir: 3,
-	ydir: 3.2
-}
+let guiDiv, mode, opts = ['checkbox', 'radio', 'button', 'colorpicker', 'slider', 'select', 'input'],
+	elms = [],
+	elmMode, drawToggle = true,
+	moveToggle = false,
+	animateToggle = true,
+	mouseDown = false,
+	bgColor
 
-let sliderAlpha, sliderSpeed, sliderStroke
+let font, bounds
+
+function preload() {
+	font = loadFont("RobotoMono-Regular.otf") // RobotoMono-Regular.otf
+}
 
 function setup() {
 	createCanvas(windowWidth, windowHeight)
-	pos.x = width / 2
-	pos.y = height / 2
-	if(navigator.platform.indexOf('Win') > -1) {
-		fontSet = 'win'
-	}
+	background(0)
 
-	initGUI()
+	guiInit()
+	genType('p5-t00ls', width / 6)
 }
 
-function initGUI(){
-	sliderAlpha = createSlider(0, 255, 10, 1)
-	sliderAlpha.position(5, 50).class('sliders')
-	sliderSpeed = createSlider(.1, 15, 1, .01)
-	sliderSpeed.position(5, 70).class('sliders')
-	sliderStroke = createSlider(0, 10, 0, .01)
-	sliderStroke.position(5, 90).class('sliders')
+function windowResized() {
+	resizeCanvas(windowWidth, windowHeight)
+	background(bgColor.color())
+}
+
+function guiInit() {
+	elmsDiv = createDiv()
+	elmsDiv.class('elmsdiv')
+	elmsDiv.id('elmsdiv')
+
+	guiHolder = createDiv()
+	guiHolder.class('gui')
+	guiHolder.id('gui')
+	guiHolder.attribute('data-html2canvas-ignore', 'true')
+
+	createDiv('p5-t00ls')
+		.parent(guiHolder)
+		.class('header')
+
+	createDiv('MODE')
+		.parent(guiHolder)
+		.class('label')
+
+	drawHolder = createDiv()
+	drawHolder.parent(guiHolder)
+	drawHolder.class('gui-item')
+
+
+	let drawMode = createSelect()
+		.parent(drawHolder)
+	drawMode.option('Draw', 0)
+	drawMode.option('Move', 1)
+	drawMode.option('Interact', 2)
+	drawMode.changed(function() {
+		if(this.value() == 1) {
+			drawToggle = false
+			moveToggle = true
+			drawOptions.hide()
+			animateCheckbox.removeAttribute('disabled')
+			if(animateCheckbox.checked()) {
+				animateToggle = true
+			}
+		} else if(this.value() == 2) {
+			drawToggle = false
+			moveToggle = false
+			animateCheckbox.attribute('disabled', true)
+			// animateCheckbox.checked(false)
+			animateToggle = false
+		} else {
+			drawToggle = true
+			moveToggle = false
+			drawOptions.show()
+			animateCheckbox.removeAttribute('disabled')
+			if(animateCheckbox.checked()) {
+				animateToggle = true
+			}
+		}
+	})
+
+	// drawing mode
+	drawOptions = createDiv()
+	drawOptions.parent(guiHolder)
+	drawOptions.class('gui-item')
+	createDiv('ELEMENTS')
+		.parent(drawOptions)
+		.class('label')
+
+
+	mode = createSelect()
+	mode.parent(drawOptions)
+	for(let o of opts) {
+		mode.option(o)
+	}
+	elmMode = opts[0] //random(opts)
+	mode.value(elmMode)
+	mode.changed(function() {
+		elmMode = this.value()
+	})
+
+	createElement('br').parent(drawOptions)
+	createElement('br').parent(drawOptions)
+
+	createButton('SPLASH')
+		.parent(drawOptions)
+		.mousePressed(randomElms)
+
+	createButton('RANDOM')
+		.parent(drawOptions)
+		.mousePressed(randomGUI)
+
+	createButton('CLEAR')
+		.parent(drawOptions)
+		.mousePressed(resetGUI)
+
+	createButton('TYPO')
+		.parent(drawOptions)
+		.mousePressed(function(){
+			resetGUI()
+			genType('p5-t00ls', width / 6)
+		})
+
+	// EXTRAS
+	createDiv('SETTINGS')
+		.parent(guiHolder)
+		.class('label')
+	// animate
+	animateHolder = createDiv()
+	animateHolder.parent(guiHolder)
+	animateHolder.class('gui-toggle')
+
+	animateCheckbox = createCheckbox()
+		.parent(animateHolder)
+		.changed(function() {
+			animateToggle = this.checked()
+		})
+		.checked(drawToggle)
+	createDiv('animated')
+		.parent(animateHolder)
+	// .class('gui-')
+
+
+	bgHolder = createDiv()
+	bgHolder.parent(guiHolder)
+	bgHolder.class('gui-toggle')
+
+	bgColor = createColorPicker('#000')
+		.parent(bgHolder)
+		.class('bgcolor')
+		.input(function() {
+			background(this.color())
+		})
+
+	createDiv('background')
+		.parent(bgHolder)
+
+
+	createElement('style', `
+		.elmsdiv{
+			position:fixed;
+			top:0;
+			left:0;
+			width:100vw;
+			height:100vh;
+			z-index:10;
+		}
+		.gui{
+			position:fixed;
+			right:50px;
+			top:50px;
+			width:150px;
+			border:1px solid #fff;
+			border-radius:5px;
+			padding:10px;
+			color:#fff;
+			font-family:sans-serif;
+			font-size:10pt;
+			background:#000;
+			z-index:999;
+		}
+		.header{
+			font-size:150%;
+		}
+		.gui-item{
+			margin-bottom:5px;
+		}
+		.gui button{
+			font-size:9pt;
+			width:calc(50% - 2px);
+			margin: 0 2px 2px 0;
+		}
+		.gui-toggle{
+			margin-bottom:5px;
+			display:flex;
+		}
+		.label{
+			font-size:8pt;
+			margin:12px 0 2px 0;
+			text-decoration:underline;
+			border-top:1px solid #fff;
+			padding:2px 0 2px 0
+		}
+		.bgcolor{
+			height:25px;
+			margin-right:5px;
+		}
+		*{
+			outline:none !important;
+			 -webkit-touch-callout: none; /* iOS Safari */
+		    -webkit-user-select: none; /* Safari */
+		     -khtml-user-select: none; /* Konqueror HTML */
+		       -moz-user-select: none; /* Old versions of Firefox */
+		        -ms-user-select: none; /* Internet Explorer/Edge */
+		            user-select: none;
+		}
+		input{
+
+		}
+	`)
 }
 
 function draw() {
-	background(0, sliderAlpha.value())
-	fill(255)
-	stroke(0)
-	strokeWeight(sliderStroke.value())
-	textSize(50)
 
-	let txt = 'coming soon'
-	let txtWidth = textWidth(txt)/2
-	// print(txtWidth)
-
-	pos.x += pos.xdir * sliderSpeed.value()
-	if(pos.x >= width - txtWidth || pos.x <= txtWidth) {
-		pos.xdir *= -1
-		textFont(random(fonts[fontSet]))
+	for(let e of elms) {
+		e.update()
 	}
 
-	pos.y += pos.ydir * sliderSpeed.value()
-	if(pos.y >= height-25 || pos.y <= 25) {
-		pos.ydir *= -1
-		textFont(random(fonts[fontSet]))
+	if(mouseIsPressed && frameCount % 3 == 0 && drawToggle) { // && mouseY > height * .3
+		elms.push(new GUI(mouseX, mouseY))
 	}
 
-	textAlign(CENTER, CENTER)
-	text(txt, pos.x, pos.y)
+
+}
+
+function mousePressed() {
+	for(let e of elms) {
+		if(moveToggle && !mouseDown && dist(mouseX, mouseY, e.x, e.y) < 50 && !drawToggle) {
+			e.drag = true
+			mouseDown = true
+		}
+
+	}
+}
+
+function mouseReleased() {
+	mouseDown = false
+	for(let e of elms) {
+		e.drag = false
+	}
+}
+
+function keyPressed() {
+	if(keyCode == 8) {
+		resetGUI()
+	}
+
+	if(key == 'S') {
+		saveFrame('p5-t00ls')
+	}
+}
+
+function saveFrame(toolName) {
+	let timestamp = (new Date()).toISOString().replace(/[^0-9]/g, '').slice(0, -3);
+	var filename = toolName + '_' + timestamp + '.png'; // with timestamp
+
+	htmlToImage.toJpeg(document.getElementById('elmsdiv'), {
+			quality: 0.95
+		})
+		.then(function(dataUrl) {
+			var link = document.createElement('a')
+			link.download = filename
+			link.href = dataUrl
+			link.click()
+		});
+}
+
+
+function resetGUI() {
+	for(let e of elms) {
+		e.clear()
+	}
+	elms = []
+	background(0)
+}
+
+function randomElms() {
+	for(let i = 0; i < 10; i++) {
+		elms.push(new GUI(random(width), random(height)))
+	}
+}
+
+function randomGUI() {
+	for(let i = 0; i < 10; i++) {
+		elmMode = random(opts)
+		mode.value(elmMode)
+		elms.push(new GUI(random(width), random(height)))
+	}
+}
+
+function genType(txtString, txtSize) {
+	// grab bounding box of text
+	bounds = font.textBounds(txtString, 0, 0, txtSize)
+
+	// textToPoints(txt, x, y, size, options)
+	points = font.textToPoints(txtString, -bounds.w / 2, bounds.h / 2, txtSize, {
+		sampleFactor: .03
+	})
+
+	// set play logic
+	for(let p of points) {
+		elms.push(new GUI(p.x + width / 2, p.y + height / 2))
+		// n.play = false
+		// n.playing = false
+		// if(random(1) > .95) {
+		// 	n.play = true
+		// }
+	}
+}
+
+class GUI {
+	constructor(x, y) {
+		this.x = x
+		this.y = y
+		this.id = elms.length
+		this.mode = elmMode
+		this.value = 0
+		this.count = 0
+		this.drag = false
+		this.r = floor(random(5))
+		let self = this
+		if(this.mode == 'checkbox') {
+			this.gui = createCheckbox()
+			this.value = false
+			this.gui.changed(function() {
+				let offset = 30
+				this.x += random(-offset, offset)
+				this.y += random(-offset, offset)
+				this.position(this.x, this.y)
+			})
+		} else if(this.mode == 'radio') {
+			this.gui = createRadio()
+			this.gui.option(' ')
+			// this.gui.option(1)
+		} else if(this.mode == 'button') {
+			this.value = ['SUBMIT', 'CANCEL', 'SAVE', 'QUIT', 'RESET', 'EXIT', 'FULLSCREEN', 'PLAY', 'PAUSE', 'STOP', 'NEXT', 'BACK', 'PREVIOUS', 'FORWARD', 'HOME', 'TOP']
+			this.gui = createButton(random(this.value))
+			this.gui.mousePressed(function() {
+				let rElm = random(elms)
+				rElm.x = random(width)
+				rElm.y = random(height)
+				rElm.gui.position(rElm.x, rElm.y)
+				// rElm.clear()
+			})
+		} else if(this.mode == 'colorpicker') {
+			this.gui = createColorPicker(color(random(255), random(255), random(255)))
+			this.gui.input(function() {
+				if(self.r == 0) {
+					document.getElementById('gui').style.color = this.value()
+				} else if(self.r == 1 || self.r == 2) {
+					document.getElementById('gui').style.backgroundColor = this.value()
+				} else {
+					bgColor.value(this.value())
+					background(bgColor.color())
+				}
+			})
+		} else if(this.mode == 'slider') {
+			this.value = random(100)
+			this.gui = createSlider(0, 100, this.value, .1)
+			this.gui.input(function() {
+				if(self.r == 0) {
+					document.getElementById('gui').style.fontSize = this.value() + 'pt'
+				} else if(self.r == 1) {
+					document.getElementById('gui').style.left = this.value() + 'vh'
+				} else if(self.r == 2) {
+					document.getElementById('gui').style.width = this.value() + 'vw'
+				} else if(self.r == 3) {
+					document.getElementById('gui').style.backgroundColor = `rgb(${this.value()}, ${this.value()}, ${this.value()})`
+				} else if(self.r == 4) {
+					document.getElementById('gui').style.letterSpacing = this.value() + 'px'
+				}
+			})
+			this.gui.size(random(20, 100), 10)
+		} else if(this.mode == 'select') {
+			// this.value = random(100)
+			this.gui = createSelect()
+			this.count = floor(random(2, 10))
+			for(let i = 0; i < this.count; i++) {
+				this.gui.option('Option ' + i, i)
+			}
+			this.gui.value(floor(random(this.count)))
+		} else if(this.mode == 'input') {
+			this.gui = createInput()
+			this.value = 'hello world'
+			this.gui.size(random(60, 150), 20)
+			this.gui.attribute('placeholder', this.value)
+			this.gui.input(function() {
+				push()
+				fill(255)
+				textSize(random(5, 25))
+				textFont(random(['Arial', 'Arial Black', 'Comic Sans MS',
+					'Courier', 'Georgia', 'Times New Roman',
+					'Times', 'Impact', 'Lucida Console',
+					'Monaco', 'Lucida Grande', 'Palatino', 'Tahoma',
+					'Geneva', 'Trebuchet MS', 'Helvetica', 'Verdana',
+					'Geneva', 'MS Sans Serif', 'MS Serif', 'New York'
+				]))
+				text(this.value(), random(width), random(height))
+				pop()
+
+				for(let e of elms) {
+					if(e.mode == 'input') {
+						e.gui.value(this.value())
+					}
+				}
+			})
+		}
+		this.gui.parent(elmsDiv)
+		this.gui.position(this.x, this.y)
+		this.frameCount = random(100)
+		this.speed = random(.001, .05)
+	}
+
+	update() {
+		// if(mouseIsPressed && (!mouseDown || this.drag) && dist(mouseX, mouseY, this.x, this.y) < 50 && !drawToggle) {
+		if(this.drag) {
+			this.x = mouseX
+			this.y = mouseY
+			this.gui.position(this.x, this.y)
+			// this.drag = true
+			// mouseDown = true
+		}
+		if(animateToggle) {
+			if(this.mode == 'checkbox') {
+
+				if(frameCount % 4 == 0) {
+					this.value = false
+					if(random(1) > .5) {
+						this.value = true
+					}
+				}
+				this.gui.checked(this.value)
+			} else if(this.mode == 'radio') {
+				// if(frameCount % 4 == 0) {
+					let offx= sin(this.id +frameCount*.1)*20
+					let offy= cos(this.id+frameCount*.1)*20
+					this.gui.position(this.x + offx, this.y + offy)
+					this.gui.selected(' ')
+
+				// }
+			} else if(this.mode == 'colorpicker') {
+				if(frameCount % 4 == 0) {
+					let rcol = floor(random(16777215)).toString(16)
+					while(rcol.length < 6) {
+						rcol += '0'
+					}
+					this.gui.value('#' + rcol)
+				}
+			} else if(this.mode == 'button') {
+				if(frameCount % 4 == 0) {
+
+					// this.value = false
+					if(random(1) > .85) {
+						this.gui.html(random(this.value))
+					}
+				}
+			} else if(this.mode == 'slider') {
+				this.value = noise(this.frameCount * this.speed) * 100
+				this.gui.value(this.value)
+			} else if(this.mode == 'select') {
+				if(frameCount % 4 == 0 && random(1) > .5) {
+					this.gui.value(floor(random(this.count)))
+				}
+			} else if(this.mode == 'input'){
+				if(frameCount % 4 == 0){
+					// var valLength = this.gui.attribute('placeholder').length;
+					// /
+					// let txt = 'hello world'
+					// let txtFlow = splice(txt, frameCount%txt.length)
+					// this.gui.attribute('placeholder', 'hi')
+				}
+			}
+			this.frameCount++ //= this.speed
+		}
+	}
+
+	clear() {
+		this.gui.remove(' ')
+		this.gui.remove()
+	}
+}
+
+
+
+function saveAs(uri, filename) {
+
+	var link = document.createElement('a');
+
+	if(typeof link.download === 'string') {
+
+		link.href = uri;
+		link.download = filename;
+
+		//Firefox requires the link to be in the body
+		document.body.appendChild(link);
+
+		//simulate click
+		link.click();
+
+		//remove the link when done
+		document.body.removeChild(link);
+
+	} else {
+
+		window.open(uri);
+
+	}
 }
 </script>
 

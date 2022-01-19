@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>p5_tool_003_wip_13.12.21_surgery</title>
+	<meta charset="utf-8">
+	<!-- Compiled w/ P5LIVE, http://github.com/ffd8/p5live -->
+	<style type="text/css">
+		body{
+			margin:0;
+			overflow:hidden;
+		}
+		canvas{
+			position:fixed;
+			top:0;
+			left:0;
+			z-index:-1;
+			width:100vw;
+			height:100vh;
+			margin:0;
+		}
+	</style>
+	<script type="text/javascript">
+		// eco-mode = only render if window focused
+		window.onblur = function () {
+			noLoop();
+		};
+		window.onfocus = function () {
+			loop();
+		};
+	</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+//p5_tool_003_wip_13.12.21_surgery
+
+/* CUSTOM FUNCTIONS FOR P5LIVE */
+// keep fullscreen if window resized
+function windowResized() {
+	resizeCanvas(windowWidth, windowHeight);
+}
+
+// custom ease function
+function ease(iVal, oVal, eVal){
+	return oVal += (iVal - oVal) * eVal;
+}
+
+// processing compatibility
+function println(msg){
+	print(msg);
+}
+
+
+var credits = { 
+	names : [ 
+		`ankita.d'souza` // link to website if you have it <a href="URL" target="_blank">first.lastname</a> 
+	
+	] 
+	,class : `MDes` 
+	,description : `A fun, easy tool to make pixel drawings` 
+} 
+
+
+let sqNum = 20
+let unitSize
+let border
+let toggle = []
+let curState
+
+let GUIw, GUIh
+let inputw, inputh
+
+let layer
+
+let msginput
+let nameinput
+let dateinput
+let selectFont, selFont = 'HAGRID'
+let sliderGrid
+let button
+let colorPicker
+let stColorPicker
+let tColorPicker
+let scl = 1.0
+//let c
+
+
+function setup() {
+	createCanvas(windowWidth, windowHeight)
+	layer = createGraphics(height * .9, height * .9)
+	imageMode(CENTER)
+
+	GUIw = width * 0.8
+	GUIh = 10
+
+	inputw = 200
+	inputh = 510
+
+	colorPicker = createColorPicker("red")
+	colorPicker.position(GUIw, GUIh * 20)
+
+	stColorPicker = createColorPicker("blue")
+	stColorPicker.position(GUIw, GUIh * 25)
+
+	tColorPicker = createColorPicker("black")
+	tColorPicker.position(GUIw, GUIh * 30)
+
+	t2ColorPicker = createColorPicker("black")
+	t2ColorPicker.position(GUIw, GUIh * 51)
+
+	msginput = createInput('')
+	msginput.attribute('placeholder', 'Write a Message')
+	msginput.position(GUIw, GUIh * 45)
+	msginput.size(150)
+
+	nameinput = createInput('')
+	nameinput.attribute('placeholder', 'Name goes here')
+	nameinput.position(GUIw, GUIh * 55)
+	nameinput.size(150)
+
+	dateinput = createInput('')
+	dateinput.attribute('placeholder', 'Date goes here')
+	dateinput.position(GUIw, GUIh * 58)
+	dateinput.size(150)
+
+	button = createButton("SAVE")
+	button.position(GUIw, GUIh * 64)
+	button.mousePressed(saveOutput)
+	//button.mousePressed(changeColor)
+
+
+	sliderGrid = createSlider(10, 50, 20, 1); // min, max, default, stepSize 
+	sliderGrid.position(GUIw, GUIh * 7)
+	sliderGrid.input(buildGrid)
+
+	selectFont = createSelect()
+	selectFont.position(GUIw, GUIh * 40)
+	selectFont.size(125)
+	selectFont.option('JET BRAINS')
+	selectFont.option('HELVETICA NEUE')
+	selectFont.option('HAGRID')
+	selectFont.selected('HAGRID') // set default 
+	selectFont.changed(updateFont)
+
+
+	layer.rectMode(CENTER)
+	border = height * 0.06
+
+	buildGrid()
+	tooltext()
+
+}
+
+function draw() {
+
+	//background(217, 210, 117)
+	background(0, 0, 255)
+	layer.background(255)
+	//noStroke()
+	//stroke(217, 210, 117)
+	layer.stroke(stColorPicker.color())
+	layer.strokeWeight(0.5)
+
+
+	// push()
+	// fill(0)
+	// rect(width/1.94, height / 2, 619)
+	// pop()
+
+	for(let x = 0; x < sqNum; x++) {
+		for(let y = 0; y < sqNum; y++) {
+			layer.fill(255) //default unclicked
+			if(toggle[x * sqNum + y].state) {
+				let dis = dist(mouseX - width / 2 + layer.width / 2, mouseY - height / 2 + layer.height / 2, x * unitSize + unitSize / 2, y * unitSize + unitSize / 2)
+
+				if(dis < unitSize / 2) {
+					toggle[x * sqNum + y].color = colorPicker.color()
+				}
+				layer.fill(toggle[x * sqNum + y].color) //clicked
+			}
+
+			layer.rect(x * unitSize + unitSize / 2, y * unitSize + unitSize / 2, unitSize, unitSize)
+		}
+	}
+
+
+
+	layer.push()
+	layer.translate(layer.width / 2, unitSize * 2 - unitSize / 2)
+	layer.fill(tColorPicker.color())
+	layer.noStroke()
+	layer.textSize(30)
+	layer.textAlign(CENTER, CENTER)
+	layer.textFont(selFont)
+	layer.text(msginput.value(), 0, 0)
+	layer.textSize(10)
+	layer.fill(t2ColorPicker.color())
+	layer.text(nameinput.value(), -(inputw + 30), inputh)
+	layer.text(dateinput.value(), inputw + 10, inputh)
+	layer.pop()
+
+	if(mouseIsPressed) {
+		for(let i = 0; i < sqNum; i++) {
+			for(let y = 0; y < sqNum; y++) {
+				//toggle[x * sqNum + y] = false
+				let dis = dist(mouseX - width / 2 + layer.width / 2, mouseY - height / 2 + layer.height / 2, i * unitSize + unitSize / 2, y * unitSize + unitSize / 2)
+				if(dis < unitSize / 2) {
+					//toggle[i * sqNum + y] = !toggle[x * sqNum + y]
+					toggle[i * sqNum + y].state = curState
+
+
+
+
+				}
+			}
+
+		}
+	}
+	image(layer, width / 2, height / 2, layer.width, layer.height)
+}
+
+
+
+function saveOutput() {
+layer.save('pixelartwork.png')
+}
+
+
+
+
+function mousePressed() {
+	for(let x = 0; x < sqNum; x++) {
+		for(let y = 0; y < sqNum; y++) {
+			//toggle[x * sqNum + y] = false
+			let dis = dist(mouseX - width / 2 + layer.width / 2, mouseY - height / 2 + layer.height / 2, x * unitSize + unitSize / 2, y * unitSize + unitSize / 2)
+			if(dis < unitSize / 2) {
+				curState = !toggle[x * sqNum + y].state
+			}
+		}
+	}
+
+}
+
+
+function buildGrid() {
+	sqNum = sliderGrid.value()
+	unitSize = layer.height / sqNum //dividing the height by number of squares after subtracting the border 
+	for(let x = 0; x < sqNum; x++) {
+		for(let y = 0; y < sqNum; y++) {
+			toggle[x * sqNum + y] = {
+				state: false,
+				color: colorPicker.color()
+			}
+
+		}
+	}
+}
+
+
+function updateFont() {
+	if(selectFont.value() == 'JET BRAINS') {
+		selFont = 'JETBRAINSMONONL-REGULAR'
+	} else if(selectFont.value() == 'HELVETICA NEUE') {
+		selFont = 'HELVETICANEUELIGHT'
+	} else if(selectFont.value() == 'HAGRID') {
+		selFont = 'HAGRID'
+	}
+}
+
+function tooltext() {
+
+	let gDiv = createDiv('GRID SIZE')
+	gDiv.position(GUIw, GUIh * 5)
+	gDiv.style('font-size', '12px')
+	gDiv.style('color', '#ffffff')
+	gDiv.style('font-family', "HELVETICANEUELIGHT")
+
+	let cDiv = createDiv('PIXEL COLOR')
+	cDiv.position(GUIw + 65, GUIh * 20.5)
+	cDiv.style('font-size', '12px')
+	cDiv.style('color', '#ffffff')
+	cDiv.style('font-family', "HELVETICANEUELIGHT")
+
+	let c3Div = createDiv('GRID COLOR')
+	c3Div.position(GUIw + 65, GUIh * 25.5)
+	c3Div.style('font-size', '12px')
+	c3Div.style('color', '#ffffff')
+	c3Div.style('font-family', "HELVETICANEUELIGHT")
+
+	let c2Div = createDiv('TEXT COLOR')
+	c2Div.position(GUIw + 65, GUIh * 30.5)
+	c2Div.style('font-size', '12px')
+	c2Div.style('color', '#ffffff')
+	c2Div.style('font-family', "HELVETICANEUELIGHT")
+
+	let c4Div = createDiv('TEXT COLOR')
+	c4Div.position(GUIw + 65, GUIh * 51.5)
+	c4Div.style('font-size', '12px')
+	c4Div.style('color', '#ffffff')
+	c4Div.style('font-family', "HELVETICANEUELIGHT")
+
+
+	let tDiv = createDiv('FONT')
+	tDiv.position(GUIw, GUIh * 37.5)
+	tDiv.style('font-size', '12px')
+	tDiv.style('color', '#ffffff')
+	tDiv.style('font-family', "HELVETICANEUELIGHT")
+}
+
+
+function saveFrame(toolName){ 
+	let timestamp = (new Date()).toISOString().replace(/[^0-9]/g, '').slice(0, -3); 
+	var filename = toolName + '_' + timestamp + '.png'; // with timestamp 
+	//var filename = toolName + '.png'; // without timestamp 
+	//save(filename);  // use to save entire canvas 
+	layer.save(filename); // use to save specific layer only 
+} 
+
+</script>
+
+</body>
+</html>

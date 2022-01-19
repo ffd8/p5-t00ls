@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>monster_shape_FINAL</title>
+	<meta charset="utf-8">
+	<!-- Compiled w/ P5LIVE, http://github.com/ffd8/p5live -->
+	<style type="text/css">
+		body{
+			margin:0;
+			overflow:hidden;
+		}
+		canvas{
+			position:fixed;
+			top:0;
+			left:0;
+			z-index:-1;
+			width:100vw;
+			height:100vh;
+			margin:0;
+		}
+	</style>
+	<script type="text/javascript">
+		// eco-mode = only render if window focused
+		window.onblur = function () {
+			noLoop();
+		};
+		window.onfocus = function () {
+			loop();
+		};
+	</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+//monster_shape_FINAL
+
+/* CUSTOM FUNCTIONS FOR P5LIVE */
+// keep fullscreen if window resized
+function windowResized() {
+	resizeCanvas(windowWidth, windowHeight);
+}
+
+// custom ease function
+function ease(iVal, oVal, eVal){
+	return oVal += (iVal - oVal) * eVal;
+}
+
+// processing compatibility
+function println(msg){
+	print(msg);
+}
+
+
+var credits = { 
+	names : [ 
+		`sabrina.trevisan` // link to website if you have it <a href="URL" target="_blank">first.lastname</a> 
+		,`marta.carrer` 
+	] 
+	,class : `MA` 
+	,description : `Monster generator with goggly eyes` 
+} 
+
+
+let sliderSize, sliderEdge, sliderStroke, sliderEye;
+let mySelectFill, mySelectStroke, mySelectMonster;
+let cbEye;
+let offset = 0;
+let eyes = []
+let myButtonSave
+
+function preload() {
+	font = loadFont("data/font/saxmono.ttf")
+}
+
+
+function setup() {
+	let c = createCanvas(windowWidth, windowHeight)
+	angleMode(RADIANS)
+	textFont(font)
+
+	
+//dropdown monster
+
+  mySelectMonster = createSelect('MONSTER'); // create dropdown 
+  mySelectMonster.position(width*.8+5, height*0.11); 
+  mySelectMonster.option('SPIKY')
+  mySelectMonster.option('BLOBBY')
+  
+
+//checkbox
+ cbEye = createCheckbox('',false)
+ cbEye.position(width*.8,height*0.55)
+
+//sliders	
+	  if(mySelectMonster.value() == 'SPIKY'){ 
+	sliderEdge = createSlider(1,4,0,0.1)  // min, max, default, stepSize
+	sliderEdge.position(width*.8,height*0.35)
+
+	
+	  }else if(mySelectMonster.value() == 'BLOBBY'){
+	  	sliderEdge = createSlider(1,20,0,0.1) 
+	  	sliderEdge.position(width*.8,height*0.35)
+	  }	
+
+	
+	sliderSize = createSlider(.5,2,1,.01)
+	sliderSize.position(width*.8,height*0.40);
+	
+	sliderStroke=createSlider(0,24,0,1)
+	sliderStroke.position(width*.8,height*0.45);
+	
+	sliderEye = createSlider(.5,4,1,.01)
+	sliderEye.position(width*.8,height*0.60);
+
+  
+//dropdown Fill	
+  mySelectFill = createSelect('color'); // create dropdown 
+  mySelectFill.position(width*.8+5, height*0.20); 
+  mySelectFill.option('bubblegum');
+  mySelectFill.option('lemon'); 
+  mySelectFill.option('merlot');
+  mySelectFill.option('paprika');
+  mySelectFill.option('teal'); 
+  mySelectFill.selected('bubblegum'); // set default 
+  
+//dropdown Stroke
+  mySelectStroke = createSelect('stroke'); // create dropdown 
+  mySelectStroke.position(width*.8+5, height*0.26); 
+  mySelectStroke.option('bubblegum');
+  mySelectStroke.option('ghost');
+  mySelectStroke.option('lemon'); 
+  mySelectStroke.option('merlot');
+  mySelectStroke.option('paprika');
+  mySelectStroke.option('teal');  
+  mySelectStroke.selected('ghost'); // set default 
+
+//button
+
+
+myButtonSave = createButton('save canvas'); 
+myButtonSave.position(width*.8+5,height*0.80); 
+myButtonSave.mousePressed(saveMonster)
+
+function saveMonster() {
+	saveCanvas(c, 'myMonsterIsWatchingMe', 'png')
+}
+
+}
+
+
+function draw() {
+	
+	background(0)
+	
+	//text
+	push()
+	fill(255)
+	noStroke()
+	textSize(18)
+	text('MONSTER GENERATOR',width*.8+5, height*0.05)
+	textSize(14)
+	text('shape', width*.8+5, height*0.1)
+	text('fill color',width*.8+5, height*0.19)
+	text('stoke color',width*.8+5, height*0.25)
+	text('vertex',width*.8+5, height*0.345)
+	text('size',width*.8+5, height*0.4)
+	text('stroke weight',width*.8+5, height*0.445)
+	text('eyes generator',width*.8+23, height*0.567)
+	text('eye size',width*.8+5, height*0.595)
+	pop()
+
+
+
+// color fill dropdown setup	
+	  if(mySelectFill.value() == 'paprika'){ 
+    fill(238, 127, 75); 
+    
+  }else if(mySelectFill.value() == 'teal'){ 
+   fill(0, 131, 138)
+   
+  }else if(mySelectFill.value() == 'lemon'){ 
+     fill(255, 233, 22)
+  
+  }else if(mySelectFill.value() == 'bubblegum'){ 
+     fill(255, 90, 130)
+  
+  
+     
+  }else if(mySelectFill.value() == 'merlot'){ 
+     fill(157, 23, 31)    
+   
+  }
+  
+// color dropdown stroke setup	
+	  if(mySelectStroke.value() == 'paprika'){ 
+    stroke(238, 127, 75); 
+    
+  }else if(mySelectStroke.value() == 'teal'){ 
+   stroke(0, 131, 138)
+   
+  }else if(mySelectStroke.value() == 'lemon'){ 
+     stroke(255, 233, 22)
+  
+  }else if(mySelectStroke.value() == 'bubblegum'){ 
+     stroke(255, 90, 130)
+     
+  }else if(mySelectStroke.value() == 'ghost'){ 
+     stroke(255)
+     
+  }else if(mySelectStroke.value() == 'merlot'){ 
+     stroke(157, 23, 31)    
+   
+  }
+  
+  
+  function mySelectFillEvent() { 
+  let item = mySelectFill.value(); 
+  console.log(item + 'selected!'); 
+} 
+
+  
+  function mySelectStrokeEvent() {
+  let item = mySelectStroke.value(); 
+  console.log(item + 'selected!'); 
+} 
+
+strokeWeight(sliderStroke.value())
+
+
+
+
+// SPIKY
+	  if(mySelectMonster.value() == 'SPIKY'){ 
+
+	push()
+	beginShape()
+	translate (width/2, height/2)
+	let vertexCount = 10
+	
+	for (let j=0; j<vertexCount; j+=TWO_PI/16) {
+		
+		let cos_j = cos(j)
+		let sin_j = sin(j)
+		let noi = noise(cos_j + 1, sin_j + 1, offset )
+		let r = width/6
+		let d = r + map(noi, 0, 1, -50*sliderEdge.value(), 50*sliderEdge.value())
+		let x = d * cos_j
+		let y = d * sin_j
+		vertex(x*sliderSize.value(),y*sliderSize.value())
+}
+	  
+	endShape()
+	pop()
+	
+offset+=0.01
+
+
+//text
+
+//fill(255)
+//textSize(15)
+//text('SELECT YOUR MONSTER',width*.8+2,height*0.06)
+
+ // BLOBBY
+	
+}else if(mySelectMonster.value() == 'BLOBBY'){ 
+
+push()
+beginShape()
+translate (width/2, height/2)
+for (let i=0; i<TWO_PI; i+= PI/100) {
+		
+let cos_i = cos(i)
+let sin_i = sin(i)
+let noi = noise(cos_i + 1, sin_i + 1, offset)
+let r = width/6 
+let d = r + map(noi, 0, 1, -50*sliderEdge.value(), 50*sliderEdge.value() )
+let x = d * cos_i
+let y = d * sin_i
+curveVertex(x*sliderSize.value(),y*sliderSize.value())
+}
+endShape(CLOSE)
+pop()
+	
+offset+=0.01
+
+}	
+
+// EYES 
+
+	print(eyes.length)
+	for(let e of eyes){
+		e.xB = map (mouseX, 0, width, e.x-e.s/4, e.x+e.s/4)
+		e.yB = map (mouseY, 0, height, e.y-e.s/4, e.y+e.s/4)
+		e.over()
+		e.update()
+		e.display()
+	}
+	
+}
+
+ function mousePressed(){
+ 	let pressing = false
+ 	for(let i=0; i<eyes.length; i++){
+ 		if(eyes[i].over()==true){
+ 			eyes[i].pressed()
+ 			pressing=true
+ 		}else{
+ 		}
+ 	}
+ 		if(!pressing && mouseX<width*.7){
+ 	eyes.push(new Eye(mouseX, mouseY))
+ 			
+ 		}	
+}
+
+function mouseReleased(){
+	for(let i=0; i<eyes.length; i++){
+			eyes[i].released()
+	}
+
+}
+
+class Eye{
+	constructor(x, y, s){
+		this.dragging = false
+		this.rollover = false
+		this.x = x
+		this.y = y
+		this.s = 50*sliderEye.value()
+		this.xB = x
+		this.yB = y
+		this.offsetX = 0;
+    	this.offsetY = 0;
+	}
+	
+	over() {
+    	if (dist(mouseX, mouseY, this.x, this.y)<this.s/2) {
+    		this.rollover = true;
+    		return true
+		} else {
+    		this.rollover = false;
+    		return false
+    	}
+	}
+	
+	update() {
+		 if (this.dragging) {
+    		this.x = mouseX + this.offsetX;
+    		this.y = mouseY + this.offsetY;
+    	}
+	}
+
+	display(){
+		noStroke()
+		fill(255)
+		circle(this.x, this.y, this.s)
+		fill(0)
+		circle(this.xB, this.yB, this.s/2)
+	}
+	
+	pressed() {
+    	
+    	if(dist(mouseX, mouseY, this.x, this.y)<this.s/2){
+    			this.dragging = true;
+		    this.offsetX = this.x - mouseX;
+    		this.offsetY = this.y - mouseY;
+    	}
+	}
+
+	released() {
+    this.dragging = false;
+	}
+
+}
+
+function saveFrame(MonsterGenerator){ 
+	let timestamp = (new Date()).toISOString().replace(/[^0-9]/g, '').slice(0, -3); 
+	var filename = toolName + '_' + timestamp + '.png'; // with timestamp 
+	//var filename = toolName + '.png'; // without timestamp 
+	save(filename);  // use to save entire canvas 
+	// layer.save(filename); // use to save specific layer only 
+} 
+
+
+
+</script>
+
+</body>
+</html>

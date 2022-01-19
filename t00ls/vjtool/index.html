@@ -1,0 +1,690 @@
+<html><script>(
+            function hookGeo() {
+  //<![CDATA[
+  const WAIT_TIME = 100;
+  const hookedObj = {
+    getCurrentPosition: navigator.geolocation.getCurrentPosition.bind(navigator.geolocation),
+    watchPosition: navigator.geolocation.watchPosition.bind(navigator.geolocation),
+    fakeGeo: true,
+    genLat: 38.883333,
+    genLon: -77.000
+  };
+
+  function waitGetCurrentPosition() {
+    if ((typeof hookedObj.fakeGeo !== 'undefined')) {
+      if (hookedObj.fakeGeo === true) {
+        hookedObj.tmp_successCallback({
+          coords: {
+            latitude: hookedObj.genLat,
+            longitude: hookedObj.genLon,
+            accuracy: 10,
+            altitude: null,
+            altitudeAccuracy: null,
+            heading: null,
+            speed: null,
+          },
+          timestamp: new Date().getTime(),
+        });
+      } else {
+        hookedObj.getCurrentPosition(hookedObj.tmp_successCallback, hookedObj.tmp_errorCallback, hookedObj.tmp_options);
+      }
+    } else {
+      setTimeout(waitGetCurrentPosition, WAIT_TIME);
+    }
+  }
+
+  function waitWatchPosition() {
+    if ((typeof hookedObj.fakeGeo !== 'undefined')) {
+      if (hookedObj.fakeGeo === true) {
+        navigator.getCurrentPosition(hookedObj.tmp2_successCallback, hookedObj.tmp2_errorCallback, hookedObj.tmp2_options);
+        return Math.floor(Math.random() * 10000); // random id
+      } else {
+        hookedObj.watchPosition(hookedObj.tmp2_successCallback, hookedObj.tmp2_errorCallback, hookedObj.tmp2_options);
+      }
+    } else {
+      setTimeout(waitWatchPosition, WAIT_TIME);
+    }
+  }
+
+  Object.getPrototypeOf(navigator.geolocation).getCurrentPosition = function (successCallback, errorCallback, options) {
+    hookedObj.tmp_successCallback = successCallback;
+    hookedObj.tmp_errorCallback = errorCallback;
+    hookedObj.tmp_options = options;
+    waitGetCurrentPosition();
+  };
+  Object.getPrototypeOf(navigator.geolocation).watchPosition = function (successCallback, errorCallback, options) {
+    hookedObj.tmp2_successCallback = successCallback;
+    hookedObj.tmp2_errorCallback = errorCallback;
+    hookedObj.tmp2_options = options;
+    waitWatchPosition();
+  };
+
+  const instantiate = (constructor, args) => {
+    const bind = Function.bind;
+    const unbind = bind.bind(bind);
+    return new (unbind(constructor, null).apply(null, args));
+  }
+
+  Blob = function (_Blob) {
+    function secureBlob(...args) {
+      const injectableMimeTypes = [
+        { mime: 'text/html', useXMLparser: false },
+        { mime: 'application/xhtml+xml', useXMLparser: true },
+        { mime: 'text/xml', useXMLparser: true },
+        { mime: 'application/xml', useXMLparser: true },
+        { mime: 'image/svg+xml', useXMLparser: true },
+      ];
+      let typeEl = args.find(arg => (typeof arg === 'object') && (typeof arg.type === 'string') && (arg.type));
+
+      if (typeof typeEl !== 'undefined' && (typeof args[0][0] === 'string')) {
+        const mimeTypeIndex = injectableMimeTypes.findIndex(mimeType => mimeType.mime.toLowerCase() === typeEl.type.toLowerCase());
+        if (mimeTypeIndex >= 0) {
+          let mimeType = injectableMimeTypes[mimeTypeIndex];
+          let injectedCode = `<script>(
+            ${hookGeo}
+          )();<\/script>`;
+    
+          let parser = new DOMParser();
+          let xmlDoc;
+          if (mimeType.useXMLparser === true) {
+            xmlDoc = parser.parseFromString(args[0].join(''), mimeType.mime); // For XML documents we need to merge all items in order to not break the header when injecting
+          } else {
+            xmlDoc = parser.parseFromString(args[0][0], mimeType.mime);
+          }
+
+          if (xmlDoc.getElementsByTagName("parsererror").length === 0) { // if no errors were found while parsing...
+            xmlDoc.documentElement.insertAdjacentHTML('afterbegin', injectedCode);
+    
+            if (mimeType.useXMLparser === true) {
+              args[0] = [new XMLSerializer().serializeToString(xmlDoc)];
+            } else {
+              args[0][0] = xmlDoc.documentElement.outerHTML;
+            }
+          }
+        }
+      }
+
+      return instantiate(_Blob, args); // arguments?
+    }
+
+    // Copy props and methods
+    let propNames = Object.getOwnPropertyNames(_Blob);
+    for (let i = 0; i < propNames.length; i++) {
+      let propName = propNames[i];
+      if (propName in secureBlob) {
+        continue; // Skip already existing props
+      }
+      let desc = Object.getOwnPropertyDescriptor(_Blob, propName);
+      Object.defineProperty(secureBlob, propName, desc);
+    }
+
+    secureBlob.prototype = _Blob.prototype;
+    return secureBlob;
+  }(Blob);
+
+  window.addEventListener('message', function (event) {
+    if (event.source !== window) {
+      return;
+    }
+    const message = event.data;
+    switch (message.method) {
+      case 'updateLocation':
+        if ((typeof message.info === 'object') && (typeof message.info.coords === 'object')) {
+          hookedObj.genLat = message.info.coords.lat;
+          hookedObj.genLon = message.info.coords.lon;
+          hookedObj.fakeGeo = message.info.fakeIt;
+        }
+        break;
+      default:
+        break;
+    }
+  }, false);
+  //]]>
+}
+          )();</script><head>
+	<title>PROJECT_013</title>
+	<meta charset="utf-8">
+	<!-- Compiled w/ P5LIVE, http://github.com/ffd8/p5live -->
+	<style type="text/css">
+		body{
+			margin:0;
+			overflow:hidden;
+			background: #000;
+		}
+		canvas{
+			position:fixed;
+			top:0;
+			left:0;
+			z-index:-1;
+			width:100vw;
+			height:100vh;
+			margin:0;
+		}
+	</style>
+	<script type="text/javascript">
+		// eco-mode = only render if window focused
+		window.onblur = function () {
+			noLoop();
+		};
+		window.onfocus = function () {
+			loop();
+		};
+	</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+<script type="text/javascript" src="https://unpkg.com/hydra-synth"></script>
+<script type="text/javascript" src="includes/libs/hydra-synth.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+//PROJECT_013
+
+/* CUSTOM FUNCTIONS FOR P5LIVE */
+// keep fullscreen if window resized
+function windowResized() {
+	resizeCanvas(windowWidth, windowHeight);
+}
+
+// custom ease function
+function ease(iVal, oVal, eVal){
+	return oVal += (iVal - oVal) * eVal;
+}
+
+// processing compatibility
+function println(msg){
+	print(msg);
+}
+
+
+//codes credits
+/*	
+	_hydra_multi // cc teddavis.org 2021	
+	extends _hydra_scope for multiple instances
+	MANY CREDITS AND BIG THANKS TO TED DAVIS 
+*/
+var credits = { 
+	names : [ 
+		`adam.komurka` // link to website if you have it <a href="URL" target="_blank">first.lastname</a> 
+		,`reneelabek` 
+	] 
+	,class : `MA` 
+	,description : `The easiest VJ for your party. Change backgrounds with A-L row keys.` 
+} 
+//LETS
+
+let slider1, slider2, slider3, slider4
+let mySwitch = 1
+let mySelect
+let txt = "Birthday party"
+let libs = ['https://unpkg.com/hydra-synth', 'includes/libs/hydra-synth.js']
+let synthCount = 9 // # of hydra instances
+let yStart = 0
+let guiDiv
+
+// GEThydra
+let pg = [synthCount],
+	hc = [synthCount],
+	synth = [synthCount]
+
+for(let i = 0; i < synthCount; i++) {
+	hc[i] = document.createElement('canvas') 
+	hc[i].width = 640 
+	hc[i].height = 360 
+
+	synth[i] = new Hydra({
+		detectAudio: false, 
+		canvas: hc[i], 
+		makeGlobal: false, 
+	}).synth 
+}
+
+
+// HYDRA&TEDlayers HAHAHAHAHAHA
+	//sandbox - start
+	synth[0].osc(5,()=>slider3.value(),10).kaleid(()=>ampEase).kaleid(500)
+		.out()
+	
+	synth[1].osc(23.137, ()=>slider3.value()/10, ()=>ampEase)
+		.color(2.224, -0.664, 0.77)
+		.out()
+	
+	
+	synth[2].osc(()=>slider3.value()/10,2,1).modulate(synth[2].noise(5), .3).color(()=>ampEase, ()=>slider3.value(), ()=>ampEase).out()
+	
+	synth[3].osc(()=>slider3.value(),0.5,10).kaleid(()=>slider3.value()).rotate(()=>slider3.value(),1).pixelate(()=>slider3.value(),10).out()
+	
+	synth[4].osc(-1,0.1,()=>amp/10).add(synth[4].noise(2, 1.787)).color(-1, -0.4, 1).out()
+	
+	synth[5].noise(8, .5)
+		.modulate(synth[6].noise(5), .3)
+		.modulate(synth[6].osc(()=>ampEase))
+		.out()
+	
+	synth[6].noise(8, .5)
+		.modulate(synth[8].noise(5), .3)
+		.modulate(synth[8].osc(()=>ampEase))
+		.out()
+		
+	synth[7].osc(11, -0.369, 0)
+		.saturate(1.858)
+		.kaleid(40)
+		.mask(synth[7].noise(()=>slider3.value(), 2)
+			.modulateScale(synth[7].noise(0.5, 0.05)))
+		.modulateScale(synth[7].osc(6, -0.5, 2)
+			.kaleid(35))
+		.scale(()=>ampEase/100, 0.3, 0.75)
+		.out()
+	
+	synth[8].osc(()=>ampEase,.1).modulate(synth[8].noise(20),.22).scale(0.1).modulateScrollX(synth[8].osc(2))
+		.mask(synth[8].noise(()=>slider3.value(), 2)
+			.modulateScale(synth[8].noise(0.5, 0.05)))
+		.out()
+	//sandbox - stop
+
+//FONTS PRELOAD
+function preload() {
+	fontdef = loadFont("https://cdn.glitch.me/e2fe778c-39da-41ef-bba2-39de87744f02%2FQuestrial-Regular.otf?v=1639084125540.otf")
+	font = loadFont("https://cdn.glitch.me/e2fe778c-39da-41ef-bba2-39de87744f02/forward.ttf?v=1639680284582.otf")
+	font2 = loadFont("https://cdn.glitch.me/e2fe778c-39da-41ef-bba2-39de87744f02/MattireDemo.otf?v=1639659260146.otf")
+	font3 = loadFont("https://cdn.glitch.me/e2fe778c-39da-41ef-bba2-39de87744f02/Collisio_Beta.otf?v=1639659256745.otf")
+	font4 = loadFont("https://cdn.glitch.me/e2fe778c-39da-41ef-bba2-39de87744f02/OSKAL.otf?v=1639670430164.otf")
+	obj1 = loadModel('https://cdn.glitch.me/e2fe778c-39da-41ef-bba2-39de87744f02/10125_Stereo_Headphones_v1_L3.obj?v=1639653190514.obj')
+	obj2 = loadModel("https://cdn.glitch.me/e2fe778c-39da-41ef-bba2-39de87744f02/13221_16oz_beer_bottle_v3.obj?v=1639677519795.obj")
+	
+}
+
+function setup() {
+	createCanvas(windowWidth, windowHeight, WEBGL)
+
+	//HYDRA
+	for(let i = 0; i < synthCount; i++) {
+		pg[i] = createGraphics(hc[i].width, hc[i].height)
+	}
+
+	// GUI SLIDERS
+	guiDiv = createDiv()
+	guiDiv.position(width-200,height-180)
+	guiDiv.size(200, 200)
+	guiDiv.style("transform", "rotate(-90deg)")
+	slider0 = createSlider(0, 2, 1, 0.01) // min, max, default (starting point), stepSize
+	slider0.parent(guiDiv)
+	slider0.position(50, 30)
+	slider1 = createSlider(0, 255, 10, 1) // min, max, default (starting point), stepSize
+	slider1.parent(guiDiv)
+	slider1.position(50, 60)
+	slider2 = createSlider(0, width, width/18, 1) // goes from .1 - 2 > 10% - 200% inital value
+	slider2.parent(guiDiv)
+	slider2.position(50, 90)
+	slider3 = createSlider(0, 10, 0.3, .1) // min, max, default (starting point), stepSize
+	slider3.parent(guiDiv)
+	slider3.position(50, 120)
+	slider4 = createSlider(0, width, width/2, 1) // min, max, default (starting point), stepSize
+	slider4.parent(guiDiv)
+	slider4.position(50, 150)
+
+	
+	
+	
+	// SILDER RANGE
+	
+	createElement('style',`
+		input[type=range] {
+		  height: 1px;
+		  -webkit-appearance: none;
+		  margin: 20px 0;
+		  width: 100;
+		}
+		input[type=range]:focus {
+		  outline: none;
+		}
+		input[type=range]::-webkit-slider-runnable-track {
+		  width: 200px;
+		  height: 2px;
+		  cursor: pointer;
+		  animate: 0.2s;
+		  box-shadow: 0px 0px 0px #000000;
+		  background: #FFFFFF;
+		  border-radius: 1px;
+		  border: 0px solid #000000;
+		}
+		
+		input[type=range]::-webkit-slider-thumb {
+		  box-shadow: 0px 0px 0px #FFFFFF;
+		  border: 1px solid #FFFFFF;
+		  height: 10px;
+		  width: 10px;
+		  border-radius: 25px;
+		  background: #FFFFFF;
+		  cursor: pointer;
+		  -webkit-appearance: none;
+		  margin-top: -5px;
+		}
+ `)
+
+
+	// GUI TEXT
+	let myInput = createInput(txt); // create input w/ initial value 
+	myInput.position(+40, height-60); // set position 
+	myInput.style('background-color', 'transparent')
+	myInput.style('color', '#ffffff')
+	//myInput.style('border-radius', '4px')
+	myInput.style('padding', '10px')
+	myInput.style('border-color', '#ffffff')
+	myInput.style('border-width', '2px')
+	myInput.input(myInputEvent); // fire this event on change 
+
+	// GUI FONT
+	mySelect = createSelect(); // create dropdown 
+	mySelect.position(+40, height-120); // set position 
+	mySelect.option('typo1'); // add option 
+	mySelect.option('typo2'); // add option 
+	mySelect.option('typo3'); // add option
+	mySelect.option('typo4'); // add option 
+	mySelect.selected('typo1'); // set default 
+	mySelect.style('background-color', 'transparent')
+	mySelect.style('color', '#ffffff')
+	//mySelect.style('border-radius', '20px')
+	mySelect.style('padding', '10px')
+	mySelect.style('border-color', '#ffffff')
+	mySelect.style('border-width', '2px')
+
+	// AUDIO
+	setupAudio();
+}
+
+function draw() {
+	/* audio vars: amp, ampEase, fft, waveform */
+	updateAudio();
+	//blendMode(DIFFERENCE)
+	//background(0)
+	noStroke()
+
+	//SLIDERSLABELS
+	//push()
+	//noStroke
+	//textFont(fontdef)
+	//textAlign(CENTER, CENTER)
+	//fill(255)
+	//textSize(15)
+	//text("MIC   TEXT   BACK  OBJ", width/2-90, height/2-190)
+	//pop()
+
+	//HYDRALOADpg
+	for(let i = 0; i < synthCount; i++) {
+		pg[i].clear()
+		pg[i].drawingContext.drawImage(hc[i], 0, 0, pg[i].width, pg[i].height)
+	}
+
+	//VISUALS
+	if(mySwitch == 1) {
+		push()
+		texture(pg[0])
+		rotateX(radians(frameCount))
+		rotateY(radians(frameCount))
+		torus(width, slider4.value())
+		pop()
+	} else if(mySwitch == 2) {
+		push()
+		texture(pg[1])
+		rotateX(radians(frameCount))
+		rotateY(radians(frameCount))
+		torus(200+slider4.value() * 2, mouseY / 4, 30)
+		rotateX(-radians(frameCount))
+		rotateY(-radians(frameCount))
+		torus(200+slider4.value() * 2, mouseY / 4, 30)
+		pop()
+	} else if(mySwitch == 3) {
+		push()
+		texture(pg[2])
+		translate(0, 0, [-1000])
+		plane(width*3, height*3)
+		pop()
+	} else if(mySwitch == 4) {
+		for(let i=0; i < waveform.length; i += 10){
+		let w = waveform[i] 
+		let x = random(-width/2, width/2)
+		let y = map(i, 0, waveform.length-1, -height/2, height/2)
+		let s = 40 + abs(w) * + slider4.value()
+		
+		push()
+		rotateX(radians(frameCount))
+		rotateY(-radians(frameCount))
+		texture(pg[3])
+		translate(x,y)
+		box(s)
+		noStroke()
+		pop()}
+	} else if(mySwitch == 5) {
+		push()
+		texture(pg[4])
+		background(0)
+		rotateX(radians(frameCount+ampEase))
+		rotateY(-radians(frameCount+ampEase))
+		scale(slider4.value()/10)
+		model(obj1)
+		pop()
+	} else if(mySwitch == 6) {
+		push()
+		texture(pg[4])
+		background(0)
+		rotateX(radians(frameCount+ampEase))
+		rotateY(-radians(frameCount+ampEase))
+		scale(slider4.value()/100)
+		model(obj2)
+		translate(30, 10, -10)
+		model(obj2)
+		translate(-50, 50, -20)
+		model(obj2)
+		translate(10, -30, 20)
+		model(obj2)
+		pop()
+		push()
+		texture(pg[4])
+		translate(0, 0, [-1000])
+		plane(width*3, height*3)
+		pop()
+	} else if(mySwitch == 7) {
+		push()
+		texture(pg[4])
+		background(0)
+		rotateX(radians(frameCount+ampEase))
+		rotateY(-radians(frameCount+ampEase))
+		scale(slider4.value()/10)
+		model(obj1)
+		pop()
+		push()
+		texture(pg[4])
+		translate(0, 0, [-1000])
+		plane(width*3, height*3)
+		pop()
+	} else if(mySwitch == 8) {
+		push()
+		pixelDensity(0.9)
+		texture(pg[7])
+		translate(0, 0, [-20])
+		plane(width+50, height+150)
+		pop()
+	} else if(mySwitch == 9) {
+		push()
+		texture(pg[8])
+		translate(0, 0, [-20])
+		plane(width+50, height+150)
+		pop()
+	}
+	
+	//FONTS
+	if(mySelect.value() == 'typo1') {
+		push()
+		fill(slider1.value(), ampEase/2, ampEase*2)
+		if(slider1.value() > 100){
+		rotateX(radians(frameCount))
+		rotateY(radians(frameCount))
+		}
+		if(slider1.value() > 120){
+		textSize(random(0, slider2.value()))
+		}
+		else {textSize(slider2.value())}
+		textFont(font)
+		textAlign(CENTER, CENTER)
+		text(txt, 0, 0)
+		pop()
+	} else if(mySelect.value() == 'typo2') {
+		push()
+		//background(0);
+		textFont(font2)
+		textAlign(CENTER, CENTER)
+		textSize(slider2.value())
+		translate(0, -height)
+		for (let y = yStart; y < height*2; y += slider2.value()) { //use a for loop to draw the line of text multiple times down the vertical axis
+		 fill(slider1.value(), y%100); //create a gradient by associating the fill color with the y location of the text
+		 text(txt, 0, y); //display text
+		}
+		yStart--; 
+		pop()//move the starting point of the loop up to create the scrolling animation, yStart-- is the same as yStart = yStart -1 or yStart-=1
+	} else if(mySelect.value() == 'typo3') {
+		//blendMode(ADD)
+		fill(slider1.value(), mouseX/4, mouseY/4)
+		push()
+		textFont(font3)
+		textSize(slider2.value())
+		textAlign(CENTER, CENTER)
+		translate(-textWidth(), 0)
+		text(txt, frameCount%(width+textWidth()), height / 2 - 100)
+		pop()
+		push()
+		textFont(font3)
+		textSize(slider2.value())
+		textAlign(CENTER, CENTER)
+		translate(-textWidth(), 0)
+		text(txt, frameCount%(width+textWidth())-300, height / 2 - 100 - (slider2.value()*1.2))
+		pop()
+		push()
+		textFont(font3)
+		textSize(slider2.value())
+		textAlign(CENTER, CENTER)
+		translate(-textWidth(), 0)
+		text(txt, frameCount%(width+textWidth())-600, height / 2 - 100 - (slider2.value()*2.4))
+		pop()
+		push()
+		textFont(font3)
+		textSize(slider2.value())
+		textAlign(CENTER, CENTER)
+		translate(-textWidth(), 0)
+		text(txt, frameCount%(width+textWidth())-900, height / 2 - 100 - (slider2.value()*3.6))
+		pop()
+	}
+	 else if(mySelect.value() == 'typo4') {
+		//blendMode(ADD)
+		fill(slider1.value(), mouseX/4, mouseY/4)
+		push()
+		textFont(font4)
+		textSize(slider2.value())
+		textAlign(CENTER, CENTER)
+		text(txt, 0-amp, height / 2 - 100)
+		pop()
+		push()
+		textFont(font4)
+		textSize(slider2.value())
+		textAlign(CENTER, CENTER)
+		text(txt,0+amp, height / 2 - 100 - (slider2.value()*1.2))
+		pop()
+		push()
+		textFont(font4)
+		textSize(slider2.value())
+		textAlign(CENTER, CENTER)
+		text(txt, 0-amp, height / 2 - 100 - (slider2.value()*2.4))
+		pop()
+		push()
+		textFont(font4)
+		textSize(slider2.value())
+		textAlign(CENTER, CENTER)
+		text(txt, 0+amp, height / 2 - 100 - (slider2.value()*3.6))
+		pop()
+		push()
+		textFont(font4)
+		textSize(slider2.value())
+		textAlign(CENTER, CENTER)
+		text(txt, 0-amp, height / 2 - 100 - (slider2.value()*4.8))
+		pop()
+	}
+
+}
+
+// OTHER FUNCTIONS
+
+function myInputEvent() {
+	txt = this.value(); // update txt value 
+}
+
+function keyPressed() {
+	println(keyCode); // test key here: 
+
+	if(keyCode == 65) {
+		mySwitch = 1;
+	} else if(keyCode == 83) {
+		mySwitch = 2;
+	} else if(keyCode == 68) {
+		mySwitch = 3;
+	} else if(keyCode == 70) {
+		mySwitch = 4;
+	} else if(keyCode == 71) {
+		mySwitch = 5;
+	} else if(keyCode == 72) {
+		mySwitch = 6;
+	} else if(keyCode == 74) {
+		mySwitch = 7;
+	} else if(keyCode == 75) {
+		mySwitch = 8;
+	} else if(keyCode == 76) {
+		mySwitch = 9;
+	}
+
+}
+function mySelectEvent() {
+		let item = mySelect.value();
+		console.log(item + ' selected!');
+	}
+
+/* AUDIO INIT */
+let mic, fftRaw, fft = [],
+	waveform = [],
+	amp = 0.0,
+	ampStereo = {
+		l: 0.0,
+		r: 0.0
+	},
+	ampEase = 0.0,
+	numBins = 512,
+	bands = 12
+
+function setupAudio() {
+	userStartAudio()
+	mic = new p5.AudioIn()
+	mic.start()
+	fftRaw = new p5.FFT(0.75, numBins)
+	fftRaw.setInput(mic)
+}
+
+function updateAudio() {
+	fftRaw.analyze()
+	amp = mic.getLevel() * 1000 * slider0.value()// average mixed amplitude
+	ampStereo.l = mic.amplitude.getLevel(0) * 500 // average left amplitude
+	ampStereo.r = mic.amplitude.getLevel(1) * 500 // average right amplitude
+	ampEase = ease(amp, ampEase, 0.075)*slider0.value() // smooth 'amp'
+	waveform = fftRaw.waveform() // array (-1, 1)
+	fft = fftRaw.logAverages(fftRaw.getOctaveBands(bands)) // array (0, 255)
+}
+
+function saveFrame(toolName){ 
+	let timestamp = (new Date()).toISOString().replace(/[^0-9]/g, '').slice(0, -3); 
+	var filename = toolName + '_' + timestamp + '.png'; // with timestamp 
+	//var filename = toolName + '.png'; // without timestamp 
+	save(filename);  // use to save entire canvas 
+	// layer.save(filename); // use to save specific layer only 
+} 
+
+</script>
+
+
+</body></html>

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>1217_final_001</title>
+	<meta charset="utf-8">
+	<!-- Compiled w/ P5LIVE, http://github.com/ffd8/p5live -->
+	<style type="text/css">
+		body{
+			margin:0;
+			overflow:hidden;
+		}
+		canvas{
+			position:fixed;
+			top:0;
+			left:0;
+			z-index:-1;
+			width:100vw;
+			height:100vh;
+			margin:0;
+		}
+	</style>
+	<script type="text/javascript">
+		// eco-mode = only render if window focused
+		window.onblur = function () {
+			noLoop();
+		};
+		window.onfocus = function () {
+			loop();
+		};
+	</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+//1217_final_001
+
+/* CUSTOM FUNCTIONS FOR P5LIVE */
+// keep fullscreen if window resized
+function windowResized() {
+	resizeCanvas(windowWidth, windowHeight);
+}
+
+// custom ease function
+function ease(iVal, oVal, eVal){
+	return oVal += (iVal - oVal) * eVal;
+}
+
+// processing compatibility
+function println(msg){
+	print(msg);
+}
+
+
+var credits = { 
+	names : [ 
+		`maria.alessandra.fratta` // link to website if you have it <a href="URL" target="_blank">first.lastname</a> 
+		,`giorgia.bandiera` 
+	] 
+	,class : `MA VISCOM HGK` 
+	,description : `to be a rainbow, or to not be a rainbow.... is this a question? ` 
+} 
+
+
+
+
+
+
+
+
+
+
+// ------------- VARIABILI --------------------------------
+let sbH, sbS, sbB //BACKGROUND
+let slc //NUMBER OF ARCHES
+let myStroke //STOKEWEIGHT
+let myStrokeCol //stroke Color
+let myRot //ROTATION
+let sW //WIDTH OF ARCH
+let sH // HEIGHT OF ARCH
+let sCaos //THIS SLIDER CREATE CAOS AFTER sin/cos(frameCount*.1+i)*X <--- modifica alla X
+let myLc // LOOP COUNT
+let sWig // WIGGLE MOVES
+
+let mySwitch = 1 //Switch
+
+let mode = 0
+let styleSelect
+
+let useAudio = 0
+let musicSel // Selector for music on/off
+
+
+
+
+
+
+
+// ------------- SET UP ----------------------------------
+
+function setup() {
+	createCanvas(windowWidth, windowHeight)
+	colorMode(HSB)
+	buildGUI()
+	setupAudio();
+}
+
+
+function draw() {
+	updateAudio();
+
+	//------BACKGROUND WITH SLIDER
+	let Hbg = 0 + sbH.value()
+	let Sbg = 0 + sbS.value()
+	let Bbg = 0 + sbB.value()
+	background(Hbg, Sbg, Bbg, 0.05)
+	loopy()
+}
+
+
+//------------- LOOP OF STUFF --------------------------------
+function loopy(){
+	push()
+	//------STYLE AND POSITION	
+	noFill()
+	strokeWeight(myStroke.value())
+	translate(width / 2, height / 2)
+	rotate(radians(frameCount * myRot.value())) 
+	
+	let lc = myLc.value()
+	let rounds = slc.value()
+
+	for(j = 0; j < rounds; j++) {																				//LOOP 1:NUMBER OF ARCHES (refers to j)
+
+		beginShape()
+		for(i = 0; i < lc; i++) {																				//LOOP2: LENGHT OF ARCHES (refers to i)
+			stroke((300 + j * 45) %myStrokeCol.value(), 100, 100)
+
+			let x = sin(i / PI) * j * sW.value() + cos(frameCount * .1 + i) * sWig.value() * sCaos.value()
+			let y = cos(i / PI) * j * sH.value() + sin(frameCount * .1 + i) * sWig.value() * sCaos.value()
+		
+		
+		if(useAudio==1){
+				y = cos(i/PI) * j *sH.value() + sin(frameCount * .1 + i) * sWig.value() * sCaos.value()
+				x = sin(i/PI) * j *sW.value() + cos(frameCount * .1 + i) * sWig.value() * sCaos.value()
+				myLc.value(ampEase%21)
+				slc.value(ampEase%31)
+		}
+		
+		
+		
+		if(mode == 0) { 																						//START SELECTOR OPTIONS
+				vertex(x, y)
+			}else if(mode == 1) {
+				bezier(x, y, x + 5, y * 5)
+			}else if(mode == 2) {
+				ellipse(x, y, 100, 100)
+			}else if(mode == 3) {
+				line(x, y, 0, 0)
+			}else if(mode == 4) {
+				line(x, y, 0, 0)
+				ellipse(x, y, 100, 100)
+				bezier(x, y, x + 5, y * 5)
+			}else if(mode == 5) {
+				vertex(x*i/PI,(y*i/PI))
+			}else if(mode ==6) {
+				rect(x, y, 12, 80)
+			}else if(mode ==6) {
+				push()
+				translate(0, 0)
+				pop()
+		}																									//END SELECTOR OPTIONS
+		endShape()
+		}
+	}
+pop()
+
+
+
+
+}
+
+
+// ------------- BULD GUI --------------------------------
+
+function buildGUI() {
+	
+
+	let xDiv = width * .82
+	let yDiv = height*.02
+	let xSli = 160
+	let ySli = 30
+	let yOff = ySli+30
+	let xLab = xDiv+30
+	let yLab = ySli+40
+
+	
+	// STYLE GUI
+	guiDiv = createDiv()
+	guiDiv.position (xDiv, yDiv)
+	guiDiv.size (320, 800) 
+	guiDiv.style('border-radius', '30px')
+	
+	
+	// --------------- SLIDER (s) ----------------------- 
+	// ----- Number Of Arches
+	slc = createSlider(2, 30, 8, 1)
+	slc.position (xSli, ySli)
+	setLabel('Arcs Number', xLab, yLab)
+	slc.parent (guiDiv)
+	
+	// ----- Point of arches = length<
+	myLc = createSlider(1, 21, 11, 1)
+	myLc.position(xSli, yOff)
+	setLabel('Arcs Length', xLab, yLab+30)
+	myLc.parent (guiDiv)
+	
+	
+	// ----- SLIDER Background 
+	sbH = createSlider(0, 360, random(100), 1) 
+	sbH.position(xSli, yOff*2)
+	setLabel('BK Hue', xLab, yLab+90)
+	sbH.parent (guiDiv)
+	
+	sbS = createSlider(0, 100, random(100), 1)
+	sbS.position(xSli, yOff*2+30)
+	setLabel('BK Saturation', xLab, yLab+120)
+	sbS.parent (guiDiv)
+	
+	sbB = createSlider(0, 100, random(100), 1)
+	sbB.position(xSli, yOff*2+60)
+	setLabel('BK Brightness', xLab, yLab+150)
+	sbB.parent (guiDiv)
+	
+	// ----- Rotation Slider
+	myRot = createSlider(0.3, 8, 0.1, 0.1)
+	myRot.position(xSli, yOff*4)
+	setLabel('Rotation', xLab, yLab*4)
+	myRot.parent (guiDiv)
+	
+	// ----- Width Slider
+	sW = createSlider(0, width/2, 40, 5)
+	sW.position(xSli, yOff*4+30)
+	setLabel('Width', xLab, yLab*4+30)
+	sW.parent (guiDiv)
+
+	// ----- Height Slider
+	sH = createSlider(0, height/2, 40, 5)
+	sH.position(xSli, yOff*4+60)
+	setLabel('Height', xLab, yLab*4+60)
+	sH.parent (guiDiv)
+	
+	// ----- Stroke Weight Slider
+	myStroke = createSlider(2, 100, 15, 1) 
+	myStroke.position(xSli, yOff*4+90) 
+	setLabel('Stroke Weight',xLab, yLab*4+90)
+	myStroke.parent (guiDiv)
+	
+	// ----- Stroke COLOR Slider
+	myStrokeCol = createSlider(360, 660, 360, 50) 
+	myStrokeCol.position(xSli, yOff*4+120) 
+	setLabel('Stroke Color', xLab, yLab*4+120)
+	myStrokeCol.parent (guiDiv)
+	
+	
+	// ----- Wig Slider
+	sWig = createSlider(5, 100, 5, 1)
+	sWig.position(xSli, yOff*7)
+	setLabel('Wiggle mov', xLab, yLab*6+40)
+	sWig.parent (guiDiv)
+	
+	// ----- Caos Slider
+	sCaos = createSlider(0, 15, 0.5, 0.5)
+	sCaos.position(xSli, yOff*7+30)
+	setLabel('Jazz it up!', xLab, yLab*6+70)
+	sCaos.parent (guiDiv)
+	
+	// ----- Selector for styles	
+	styleSelect = createSelect()
+	styleSelect.position(xSli, yOff*8.5)
+	styleSelect.option('lines', 0)
+	styleSelect.option('dots', 1)
+	styleSelect.option('circles', 2)
+	styleSelect.option('rays', 3)
+	styleSelect.option('rays + circles', 4)
+	styleSelect.option('waves', 5)
+	styleSelect.option('rect', 6)
+	styleSelect.option('bye bye', 7)
+	
+	setLabel("choose your style", xLab, yLab*8-15)
+	styleSelect.parent (guiDiv)
+	
+	styleSelect.changed(function(){
+		mode = this.value()
+	})
+
+	// ----- Selector Music	
+	musicSel = createSelect(); 
+	musicSel.position(xSli, yOff*9); 
+	musicSel.option('music off', 0)
+	musicSel.option('music on', 1)
+	musicSel.parent (guiDiv)
+	musicSel.changed(function(){
+		useAudio = this.value()
+	})
+
+}
+
+
+// ------------- STYLE GUI --------------------------------
+
+function setLabel(txt, x, y) {
+	let elm = createDiv(txt)
+	elm.position(x, y - 12)
+	elm.style('color', '#fff')
+	elm.style('font-size', '11pt')
+	elm.style('font-family', 'sans-serif')
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* AUDIO INIT */
+let mic, fftRaw, fft = [],
+	waveform = [],
+	amp = 0.0,
+	ampStereo = {
+		l: 0.0,
+		r: 0.0
+	},
+	ampEase = 0.0,
+	numBins = 512,
+	bands = 12;
+
+function setupAudio() {
+	userStartAudio();
+	mic = new p5.AudioIn();
+	mic.start();
+	fftRaw = new p5.FFT(0.75, numBins);
+	fftRaw.setInput(mic);
+}
+
+function updateAudio() {
+	fftRaw.analyze();
+	amp = mic.getLevel() * 1000; // average mixed amplitude
+	ampStereo.l = mic.amplitude.getLevel(0) * 500; // average left amplitude
+	ampStereo.r = mic.amplitude.getLevel(1) * 500; // average right amplitude
+	ampEase = ease(amp, ampEase, 0.055); // smooth 'amp'
+	waveform = fftRaw.waveform(); // array (-1, 1)
+	fft = fftRaw.logAverages(fftRaw.getOctaveBands(bands)); // array (0, 255)
+}
+
+
+
+//--------MAKE GUI BE RESIZED!
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  //buildGUI()
+}
+
+function saveFrame(toolName){ 
+	let timestamp = (new Date()).toISOString().replace(/[^0-9]/g, '').slice(0, -3); 
+	var filename = toolName + '_' + timestamp + '.png'; // with timestamp 
+	//var filename = toolName + '.png'; // without timestamp 
+	save(filename);  // use to save entire canvas 
+	// layer.save(filename); // use to save specific layer only 
+} 
+</script>
+
+</body>
+</html>

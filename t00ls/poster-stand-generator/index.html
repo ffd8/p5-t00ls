@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>poster-stand-generator</title>
+	<meta charset="utf-8">
+	<!-- Compiled w/ P5LIVE, http://github.com/ffd8/p5live -->
+	<style type="text/css">
+		body{
+			margin:0;
+			overflow:hidden;
+		}
+		canvas{
+			position:fixed;
+			top:0;
+			left:0;
+			z-index:-1;
+			width:100vw;
+			height:100vh;
+			margin:0;
+		}
+	</style>
+
+	<script type="text/javascript">
+		// eco-mode = only render if window focused
+		window.onblur = function () {
+			noLoop();
+		};
+		window.onfocus = function () {
+			loop();
+		};
+	</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+//poster-stand-generator
+
+var credits = {
+		names : [
+			`Afonso.Mufufu` // link to website if you have it <a href="URL" target="_blank">first.lastname</a>
+			,`Jan.Sandberg`
+		]
+		,class : `MA`
+		,description : `Tool to generate a set of poster stands and position them in 3D. Drag + Drop image from folder and place as background. Use Sliders to to modify sketch. 
+
+		Slider Functions: `
+	}
+
+	function saveFrame(toolName){
+		let timestamp = (new Date()).toISOString().replace(/[^0-9]/g, '').slice(0, -3);
+		var filename = toolName + '_' + timestamp + '.png'; // with timestamp
+		//var filename = toolName + '.png'; // without timestamp
+		save(filename);  // use to save entire canvas
+		// layer.save(filename); // use to save specific layer only
+	}
+
+/* CUSTOM FUNCTIONS FOR P5LIVE */
+// keep fullscreen if window resized
+function windowResized() {
+	resizeCanvas(windowWidth, windowHeight);
+}
+
+// custom ease function
+function ease(iVal, oVal, eVal){
+	return oVal += (iVal - oVal) * eVal;
+}
+
+// processing compatibility
+function println(msg){
+	print(msg);
+}
+
+// no P5sound
+//jshint strict: false
+
+
+let input,standXshift,standYshift,standZshift,standGRot,standLRot, bgImgX, bgImgY;
+let numPosters
+
+let unitScale, standXshiftTxt,standYshiftTxt,standZshiftTxt,standGRotTxt,standLRotTxt, bgImgTxt, bgImgYTxt
+
+
+
+//=== image calls ===
+
+let bgImg, poster_a, poster_b;
+
+//====sliders====
+let pAmount, pDist, pRot, standCount
+
+//====poster amounts
+let standsF4 = [];
+
+let imgs = [];
+let posters = [];
+
+
+
+//====values
+let unitSize;
+
+//=====boolean stuff for buttons===
+
+let TT = false;
+let TF = false;
+let FF = false;
+
+function preload() {
+
+for (let i=0; i<10; i++){
+	
+		posters[i] = loadImage ('data/poster'+i+'.jpg')
+	}
+
+}
+
+function setup() {
+	
+//	createCanvas(windowWidth, windowHeight, WEBGL);
+	let c = createCanvas(windowWidth, windowHeight,WEBGL);
+	
+	//===== test for background image loader outside preload ====
+	c.drop(gotFile);
+	
+	buildGUI();
+	let div01 = createDiv('Poster Stand Generator');
+	div01.style('font-family','Helvetica')
+	div01.style('font-size', '20px');
+	div01.position(width*.01, height * .057);
+	
+		let div02 = createDiv('version 0.1.0');
+	div02.style('font-family','Helvetica')
+	div02.style('font-size', '12px');
+	div02.position(width*.01, height * .087);
+	
+	resetButton = createButton("kill sketch");
+	resetButton.position(width * .4, height * 0.055);
+	resetButton.mousePressed(resetSketch);
+
+//=======sliders==========
+//standXshift,standYshift,standZshift
+
+ standCount = createSlider(1, 5, 1);
+  standCount.position(width*.5, height*0.050);
+  standCount.style('width', '80px');
+  let standAmountTxt = createSpan('amount');
+standAmountTxt.position(width*.51, height*0.065);
+
+ unitScale = createSlider(width *.10, width *.20, width *.15);
+  unitScale.position(width*.88, height*0.050);
+  unitScale.style('width', '80px');
+  
+ standXshift = createSlider(-width*1.2, width*1.2, width);
+  standXshift.position(width*.58, height*0.050);
+  standXshift.style('width', '80px');
+let standXshiftTxt = createSpan('x pos');
+standXshiftTxt.position(width*.59, height*0.065);
+
+standYshift = createSlider(-height*3,-height*.5, -height*4);
+  standYshift.position(width*.58, height*0.090);
+  standYshift.style('width', '80px');
+  let standYshiftTxt = createSpan('y pos');
+standYshiftTxt.position(width*.59, height*0.105);
+  
+  standZshift = createSlider(-height*0.8, height*0.8, height);
+  standZshift.position(width*.58, height*0.130);
+  standZshift.style('width', '80px');
+  let standZshiftTxt = createSpan('z pos');
+standZshiftTxt.position(width*.59, height*0.145);
+  
+  standGRot = createSlider(0, 6.28,3,.1);
+  standGRot.position(width*.66, height*0.050);
+  standGRot.style('width', '80px');
+  let standGRotTxt = createSpan('global rot');
+standGRotTxt.position(width*.665, height*.065);
+
+  
+  standLRot = createSlider(0,360,180,6);
+  standLRot.position(width*.66, height*0.090);
+  standLRot.style('width', '80px');
+  let standLRotTxt = createSpan('local rot');
+standLRotTxt.position(width*.667, height*0.105);
+
+  
+  bgImgX = createSlider(0,10,5);
+  bgImgX.position(width*.8, height*0.050);
+  bgImgX.style('width', '80px');
+  let bgImgXTxt = createSpan('canvas scale');
+bgImgXTxt.position(width*.8, height*0.065);
+  
+  bgImgY = createSlider(-width*.9, width,width*0.2);
+  bgImgY.position(width*.8, height*0.090);
+  bgImgY.style('width', '80px');
+  let bgImgYTxt = createSpan('canvas Ypos');
+bgImgYTxt.position(width*.8, height*0.105);
+
+	F4button();
+	F4_DDbutton();
+	F12button();
+
+	//===global measurement==
+	
+	unitSize = unitScale.value();
+
+}
+
+
+
+function F4button() {
+	buttonF4_1 = createButton("F4_1");
+	buttonF4_1.position(width * .271, height * .055);
+	buttonF4_1.mouseReleased(PP);
+}
+
+function F4_DDbutton() {
+	buttonF4_DD = createButton("F4_DD");
+	buttonF4_DD.position(width * .3055, height * .055);
+	buttonF4_DD.mouseReleased(PR);
+}
+
+function F12button() {
+	buttonF12 = createButton("F12");
+	buttonF12.position(width * .348, height * .055);
+	buttonF12.mouseReleased(RR);
+}
+
+
+
+//=======================
+function draw() {
+
+
+
+ numPosters = standCount.value();
+  for (let i= 0; i < numPosters; i++){
+  standsF4.push(new F4Stand(i));
+  }
+  
+  	background(230);
+	
+
+	let camPosX = 0;
+	let camPosY = 0
+	let camPosZ = (height/2) / tan(PI/6)
+	camera(camPosX, camPosY, camPosZ, 0, 0, 0, 0, 1, 0)
+	//perspective aprox iphone 12
+    //perspective(PI *0.13, width / height, 0.01, 100000);
+	let postPosX = standXshift.value();
+    let postPosY = standYshift.value();
+    let postPosZ = standZshift.value();
+    let postGRot = standGRot.value();
+    let postLRot = standLRot.value();
+    let cnvYpos = bgImgY.value();
+    let cnvScale = bgImgX.value();
+	push()
+	
+	noStroke()
+  if (bgImg) {
+  	translate(camPosX,-100,-width+cnvYpos)
+    texture(bgImg);
+  // fill(255,0,0)
+    plane(width*cnvScale, height*cnvScale);
+    pop()
+    //standXshift,standYshift,standZshift,standGRot,standLRot
+    
+/*
+
+		
+
+
+	*/
+ }
+  else  {
+  	push()
+  	 background(230);
+ 
+
+  pop()
+  }
+
+	noStroke();
+
+	//===button logic ==
+
+
+push()
+translate(camPosX+postPosX,postPosZ,postPosY)
+    rotateY(postGRot);
+	if(TT) {
+		
+
+    
+    	for(let i = 0; i < numPosters; i++) {
+		standsF4[i].displayF4();
+    		
+    	
+		
+}
+}
+pop()
+push()
+translate(camPosX+postPosX,postPosZ,postPosY)
+    rotateY(postGRot);
+	if(TF) {
+		for(let i = 0; i < numPosters; i++) {
+
+standsF4[i].displayF4DD();
+		
+		}
+	}
+	pop()
+	
+push()
+translate(camPosX+postPosX,postPosZ,postPosY)
+    rotateY(postGRot);
+	if(FF) {
+		for(let i = 0; i < numPosters; i++) {
+	standsF4[i].displayF12();
+		}
+	}
+
+pop()
+}
+
+
+//====toggle logic for buttons
+function PP() { //make stands.push generic
+	TT = !TT;
+}
+
+function PR() {
+	TF = !TF; //true false for F4_DD
+}
+
+function RR() {
+	FF = !FF; // true false for F12
+}
+
+
+//=====Stands + Poster =====
+
+class F4Stand {
+	constructor(size) {
+		this.size = size;
+		this.x = 0;
+		this.y = 0;
+		this.z = 0;
+		this.rotation = 0;
+		this.vel = .002
+		this.posterFront = random(posters);
+		this.posterBack = random(posters);
+		this.posterLeft = random(posters);
+		this.posterRight = random(posters);
+		//   this.tex = createImage(1,1)
+		//   this.style = 0 
+	}
+	displayF4() {
+		this.rotation += this.vel
+		translate(this.x, this.y, this.z+unitSize*1.08*2)
+	//	rotateY(this.rotation+standLRot.value())
+		//=====F4_1 POSTER A=======
+		push()
+		rotateY(this.rotation)
+		push();
+		translate(0, 0, unitSize * 0.025);
+		texture(this.posterFront)
+	//	texture(imgs[2])
+		plane(unitSize, unitSize * 1.412);
+		pop();
+
+		//=====F4_1 POSTER Back=======
+		push();
+		translate(0, 0, unitSize * -0.025);
+		rotateY(3.14159);
+		texture(this.posterBack)
+	//	texture(imgs[3])
+		plane(unitSize, unitSize * 1.412);
+		pop();
+
+		//=====F4_1 body======
+		push();
+		fill(100);
+		box(unitSize, unitSize * 1.412, unitSize * 0.04);
+		pop();
+
+		//====F4_1 legs=======
+		push();
+		translate(-unitSize * .45, unitSize, 0);
+		fill(100);
+		box(unitSize * 0.1, unitSize * .60, unitSize * 0.04);
+		pop();
+
+		push();
+		translate(unitSize * .45, unitSize, 0);
+		fill(100);
+		box(unitSize * 0.1, unitSize * .60, unitSize * 0.04);
+		pop();
+
+		//===F4_1 lateral beams ==
+		push();
+		translate(-unitSize * .51, unitSize * 0.3, 0);
+		fill(100);
+		box(unitSize * 0.02, unitSize * 2, unitSize * 0.1);
+		pop();
+
+		push();
+		translate(unitSize * .51, unitSize * 0.3, 0);
+		fill(100);
+		box(unitSize * 0.02, unitSize * 2, unitSize * 0.1);
+		pop();
+		pop();
+	}
+	
+	displayF4DD() {
+
+		translate(this.x, this.y, this.z+unitSize*1.08*2)
+		//=====F4_DD POSTER A bottom=======
+		push();
+		translate(0, 0, unitSize * 0.025);
+		texture(this.posterFront)
+		plane(unitSize, unitSize * 1.412);
+		pop();
+
+		//=====F4_DD POSTER A top=======
+		push();
+		translate(0, -unitSize * 1.5, unitSize * 0.025);
+		texture(this.posterLeft)
+		plane(unitSize, unitSize * 1.412);
+		pop();
+
+		//=====F4_DD POSTER B bottom=======
+		push();
+		translate(0, 0, unitSize * -0.025);
+		rotateY(3.14159);
+		texture(this.posterBack)
+		plane(unitSize, unitSize * 1.412);
+		pop();
+
+		//=====F4_DD POSTER B top=======
+		push();
+		translate(0, -unitSize * 1.5, unitSize * -0.025);
+		rotateY(3.14159);
+		texture(this.posterRight)
+		plane(unitSize, unitSize * 1.412);
+		pop();
+
+		//=====F4_DD body bottom======
+		push();
+		translate(0, 0, 0)
+		fill(100);
+		box(unitSize, unitSize * 1.412, unitSize * 0.04);
+		pop();
+
+		//=====F4_DD body top======
+		push();
+		translate(0, -unitSize * 1.5, 0)
+		fill(100);
+		box(unitSize, unitSize * 1.412, unitSize * 0.04);
+		pop();
+
+		//====F4_DD legs=======
+		push();
+		translate(-unitSize * .45, unitSize, 0);
+		fill(100);
+		box(unitSize * 0.1, unitSize * .60, unitSize * 0.04);
+		pop();
+
+		push();
+		translate(unitSize * .45, unitSize, 0);
+		fill(100);
+		box(unitSize * 0.1, unitSize * .60, unitSize * 0.04);
+		pop();
+
+		//=== F4_DD lateral beams =======
+		push();
+		translate(-unitSize * .51, -unitSize * 0.45, 0);
+		fill(100);
+		box(unitSize * 0.02, unitSize * 3.5, unitSize * 0.1);
+		pop();
+
+		push();
+		translate(unitSize * .51, -unitSize * 0.45, 0);
+		fill(100);
+		box(unitSize * 0.02, unitSize * 3.5, unitSize * 0.1);
+		pop();
+	
+}
+
+displayF12() {
+
+	//	let standRotY = map(mouseX, 0, width, 0, 90);
+		//rotateY(standRotY);
+		//rotateY(1.5708);
+		translate(this.x, this.y, this.z+unitSize*1.08*2)
+		
+		//=====F12 POSTER A left =======
+		push();
+		translate(0, 0, unitSize * 0.025);
+		texture(this.posterRight)
+		plane(unitSize, unitSize * 1.412);
+		pop();
+
+		//=====F12 POSTER A right =======
+		push();
+		translate(unitSize, 0, unitSize * 0.025);
+		texture(this.posterLeft)
+		plane(unitSize, unitSize * 1.412);
+		pop();
+
+		//=====F12 POSTER B left=======
+		push();
+		translate(0, 0, unitSize * -0.025);
+		rotateY(3.14159);
+		texture(this.posterFront)
+		plane(unitSize, unitSize * 1.412);
+		pop();
+
+		//=====F12 POSTER B right=======
+		push();
+		translate(unitSize, 0, unitSize * -0.025);
+		rotateY(3.14159);
+		texture(this.posterBack)
+		plane(unitSize, unitSize * 1.412);
+		pop();
+
+		//=====F12 body======
+		push();
+		translate(unitSize * .5, 0, 0);
+		fill(100);
+		box(unitSize * 2, unitSize * 1.412, unitSize * .04);
+		pop();
+
+		//====F12 legs=======
+		push();
+		translate(-unitSize * .45, unitSize, 0);
+		fill(100);
+		box(unitSize * .1, unitSize * .6, unitSize * .04);
+		pop();
+
+		push();
+		translate(unitSize * 1.45, unitSize, 0);
+		fill(100);
+		box(unitSize * 0.1, unitSize * .60, unitSize * 0.04);
+		pop();
+
+		//===F12 lateral beams =====
+
+		push();
+		translate(-unitSize * .51, unitSize * 0.3, 0);
+		fill(100);
+		box(unitSize * 0.02, unitSize * 2, unitSize * 0.1);
+		pop();
+
+		push();
+		translate(unitSize * 1.51, unitSize * 0.3, 0);
+		fill(100);
+		box(unitSize * 0.02, unitSize * 2, unitSize * 0.1);
+		pop();
+	}
+
+
+
+}
+
+
+///======= bgimage loader ======
+
+
+function gotFile(file) {
+  bgImg = createImg(file.data, '').hide();
+}
+
+function resetSketch() {
+remove();
+background(255)
+
+}
+
+function buildGUI () {
+	
+//============top bar===	
+	guiHolder = createDiv()
+		.position(width*.002 ,height*.05)
+		.size(width*.99,height*.13)
+	
+		.style('background','white')
+	//	.class('guiHolder')
+
+
+
+/*		
+	createElement('style',`
+	.guiHolder{
+		position:fixed;
+		right:25px;
+		top:25px;
+		width:300px;
+		height:500px;
+	
+	}
+	`)
+	*/
+	
+	
+	
+
+}
+
+
+
+
+//print()
+</script>
+
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>FIN_floating_torus_HSB_text</title>
+	<meta charset="utf-8">
+	<!-- Compiled w/ P5LIVE, http://github.com/ffd8/p5live -->
+	<style type="text/css">
+		body{
+			margin:0;
+			overflow:hidden;
+		}
+		canvas{
+			position:fixed;
+			top:0;
+			left:0;
+			z-index:-1;
+			width:100vw;
+			height:100vh;
+			margin:0;
+		}
+	</style>
+	<script type="text/javascript">
+		// eco-mode = only render if window focused
+		window.onblur = function () {
+			noLoop();
+		};
+		window.onfocus = function () {
+			loop();
+		};
+	</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.3.1/p5.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.3.1/addons/p5.sound.min.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+//FIN_floating_torus_HSB_text
+
+/* CUSTOM FUNCTIONS FOR P5LIVE */
+// keep fullscreen if window resized
+function windowResized() {
+	resizeCanvas(windowWidth, windowHeight);
+}
+
+// custom ease function
+function ease(iVal, oVal, eVal){
+	return oVal += (iVal - oVal) * eVal;
+}
+
+// processing compatibility
+function println(msg){
+	print(msg);
+}
+
+
+var credits = { 
+	names : [ 
+		`aniekeme.noack`
+	] 
+	,class : `MA` 
+	,description : `
+	The floating torus is based on webgl, map and hsb color mode. I created this tool which can help you interact with the torus and change background color, opacity, line color and thickness as well as the direction. And if you want you can turn it in all kind of direction.
+	Enjoy :)
+` 
+} 
+
+
+let font;
+
+function preload() {
+	font = loadFont("data/RobotoMono-Regular.otf");
+	
+}
+
+function setup() {
+	createCanvas(windowWidth, windowHeight, WEBGL)
+	textFont(font);
+	windowResized = null
+	
+	//rectMode(CENTER)
+	
+	//GUI
+	
+	//min, max, default (starting point), stepSize
+	sHG = createSlider(0, 1, 0, 1) 
+	sHG.position(width/9, 50)
+	
+	fillAlpha = createSlider(0, 1, .5, .1)//divid everything by 100
+	fillAlpha.position(width/9, 100)
+	
+	strokeline = createSlider(0, 255, 45, 1)
+	strokeline.position(width/9, 150)
+	
+	thickness = createSlider(.1, 10, 1, .01)
+	thickness.position(width/9, 200)
+	
+	direction = createSlider(0, 1, .01, 1)
+	direction.position(width/9, 250)
+	
+	// size = createSlider(0, width, width / 2)
+	// size.position(width/2, 200)
+	
+	// direction = createCheckbox('', false);
+	// direction.position(width/2, 170);
+	
+	colorMode(HSB)
+	//rectMode(CENTER)
+	
+}
+
+function draw() {
+	// clear() // kinda like background, but clear!
+	
+	background(mouseY / 2, 100, 100, sHG.value())
+	fill(360 - mouseY / 2, 100, 100, fillAlpha.value())
+	stroke(strokeline.value())
+	strokeWeight(thickness.value())
+	
+	push()
+	
+	//noStroke(0)
+	//stroke(0)
+	//strokeWeight(3)
+	
+	fill(255)
+	textSize(13)
+	text("background",width/-2.6, -445)
+	text("opacity", width/-2.6, -395)
+	text("stroke colour", width/-2.6, -345)
+	text("thickness", width/-2.6, -295)
+	text("direction", width/-2.6, -245)
+	
+	pop()
+	
+	//CHANGE DIRECTION CHECKBOX NOT WORKING - WHY?
+	// if(direction.checked()) {
+	rotate(direction.value()) //from bottom left to top right
+	// }
+	
+	//map (inValue, inMin, inMax, outMin, outMax)
+	let x = map (sin(frameCount*.01), -1, 1, 50, 255)
+	let y = map (cos(frameCount*.021), 0, 1, 50, height/3)
+	let s = map (sin(frameCount*.01),-1, 1, 50, 255, width/8)
+	//print (x)
+	
+	push()
+	
+	orbitControl(5)
+	translate(x, y, s)
+	rotateX(radians(frameCount / 2));
+	rotateY(radians(-frameCount))
+	torus(mouseX, mouseX)
+	
+	pop()
+	
+}
+	
+	function saveFrame(toolName){ 
+	let timestamp = (new Date()).toISOString().replace(/[^0-9]/g, '').slice(0, -3); 
+	var filename = toolName + '_' + timestamp + '.png'; // with timestamp 
+	//var filename = toolName + '.png'; // without timestamp 
+	save(filename);  // use to save entire canvas 
+	// layer.save(filename); // use to save specific layer only 
+}
+</script>
+
+</body>
+</html>

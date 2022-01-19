@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>PartyCreator_Tool_FINAL_Uchmann_Ehlert</title>
+	<meta charset="utf-8">
+	<!-- Compiled w/ P5LIVE, http://github.com/ffd8/p5live -->
+	<style type="text/css">
+		body{
+			margin:0;
+			overflow:hidden;
+		}
+		canvas{
+			position:fixed;
+			top:0;
+			left:0;
+			z-index:-1;
+			width:100vw;
+			height:100vh;
+			margin:0;
+		}
+	</style>
+	<script type="text/javascript">
+		// eco-mode = only render if window focused
+		window.onblur = function () {
+			noLoop();
+		};
+		window.onfocus = function () {
+			loop();
+		};
+	</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+<script type="text/javascript" src="https://unpkg.com/hydra-synth"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+//PartyCreator_Tool_FINAL_Uchmann_Ehlert
+
+/* CUSTOM FUNCTIONS FOR P5LIVE */
+// keep fullscreen if window resized
+function windowResized() {
+	resizeCanvas(windowWidth, windowHeight);
+}
+
+// custom ease function
+function ease(iVal, oVal, eVal){
+	return oVal += (iVal - oVal) * eVal;
+}
+
+// processing compatibility
+function println(msg){
+	print(msg);
+}
+
+
+var credits = {
+	names: [
+		`lina.ehlert` // link to website if you have it <a href="URL" target="_blank">first.lastname</a> 
+		, `kasia.uchman`
+	],
+	class: `MA`,
+	description: `Style your own party anywhere in the universe...`
+}
+
+
+
+
+let libs = ['https://unpkg.com/hydra-synth']
+let hc = document.createElement('canvas')
+hc.width = 640
+hc.height = 360
+let hydra = new Hydra({
+	detectAudio: false,
+	canvas: hc
+})
+let pg
+
+
+// hydraSandbox- start
+osc(5, 0.9, 0.001)
+	.kaleid([3, 4, 5, 7, 8, 9, 10].fast(0.8))
+	.color(0.5, 0.9)
+	.colorama(0.4)
+	.rotate(0.009, () => Math.sin(time) * -0.1)
+	.modulateRotate(o0, () => Math.sin(time) * 0.003)
+	.modulate(o0, 0.9)
+	.scale(0.9)
+	.out(o0)
+// hydraSandbox - stop
+
+let igloo
+let moon
+let sel
+let mode = 0
+let sliderSize
+let sliderColor
+let sliderSpin
+let font
+let button
+let mySound
+
+
+
+
+function preload() {
+	soundFormats('mp3', 'ogg')
+	igloo = loadImage('https://media.istockphoto.com/photos/igloo-interior-background-picture-id94395021?b=1&k=20&m=94395021&s=170667a&w=0&h=DHI8lZEBDF_eELSFfuB01p9HOdpEvomhaV81YFyysrM=')
+	moon = loadImage('https://images.unsplash.com/photo-1447433589675-4aaa569f3e05?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8N3x8bW9vbnxlbnwwfHwwfHw%3D&auto=format&fit=crop&w=800&q=60')
+	disco = loadImage('https://cdn.glitch.me/22848314-1518-4487-aa76-9272c0839220%2Fthumbnails%2Fp2.jpg?1639141701822')
+	desert = loadImage('https://cdn.glitch.me/22848314-1518-4487-aa76-9272c0839220%2Fthumbnails%2FdeaceNXy23NF8VsCrwZPgn.jpg?1639142986564')
+	office = loadImage('https://cdn.glitch.me/22848314-1518-4487-aa76-9272c0839220%2Fthumbnails%2F1x-1-1-1.jpg?1639143259616')
+	font = loadFont('https://cdn.glitch.me/740f58db-79dd-4e1d-a2ed-e7be602b898b/AlfaSlabOne.ttf?v=1639725926361')
+	happy = loadSound('https://cdn.glitch.me/22848314-1518-4487-aa76-9272c0839220/happy.mp3?v=1639731124360')
+	funky = loadSound ('https://cdn.glitch.me/22848314-1518-4487-aa76-9272c0839220/disco.mp3?v=1639731124359')
+	electro = loadSound ('https://cdn.glitch.me/22848314-1518-4487-aa76-9272c0839220/electronic.mp3?v=1639731124628')
+	metal = loadSound ('https://cdn.glitch.me/22848314-1518-4487-aa76-9272c0839220/angry.mp3?v=1639731124360')
+}
+
+function setup() {
+	createCanvas(windowWidth, windowHeight, WEBGL)
+	sel = createSelect();
+	sel.position(55, 60);
+	sel.option('igloo', 0);
+	sel.option('moon', 1);
+	sel.option('disco', 2);
+	sel.option('desert', 3)
+	sel.option('office', 4)
+	sel.changed(function() {
+		mode = this.value()
+	})
+
+	sliderSize = createSlider(3, 750, 40)
+	sliderSize.position(20, 130)
+
+	sliderColor = createSlider(0, 255, 255, 1)
+	sliderColor.position(20, 190)
+
+	sliderSpin = createSlider(0, 0.2, 0.01, 0.01)
+	sliderSpin.position(20, 250)
+
+	button = createButton("Happy Music ON/OFF");
+	button.position(40, 330)
+	button.mousePressed(playhappy)
+	
+	button = createButton("Funky Music ON/OFF");
+	button.position(40, 360)
+	button.mousePressed(playfunky)
+	
+	button = createButton("Electro Music ON/OFF");
+	button.position(40, 390)
+	button.mousePressed(playelectro)
+	
+	button = createButton("Metal Music ON/OFF");
+	button.position(40, 420)
+	button.mousePressed(playmetal)
+	
+
+	pg = createGraphics(hc.width, hc.height)
+	
+
+}
+function playhappy() {
+	if(happy.isPlaying()) {
+		happy.stop()
+	} else {
+		happy.play();
+
+	}
+}
+
+function playfunky() {
+	if(funky.isPlaying()) {
+		funky.stop()
+	} else {
+		funky.play();
+
+	}
+}
+
+function playelectro() {
+	if(electro.isPlaying()) {
+		electro.stop()
+	} else {
+		electro.play();
+
+	}
+}
+
+function playmetal() {
+	if(metal.isPlaying()) {
+		metal.stop()
+	} else {
+		metal.play();
+
+	}
+}
+
+
+function draw() {
+	texture(moon)
+	if(mode == 0) {
+		texture(igloo)
+		rect(-width / 2, -height / 2, width, height)
+	} else if(mode == 1) {
+		texture(moon)
+		rect(-width / 2, -height / 2, width, height)
+	} else if(mode == 2) {
+		texture(disco)
+		rect(-width / 2, -height / 2, width, height)
+	} else if(mode == 3) {
+		texture(desert)
+		rect(-width / 2, -height / 2, width, height)
+	} else if(mode == 4) {
+		texture(office)
+		rect(-width / 2, -height / 2, width, height)
+	}
+
+
+	push()
+	noStroke()
+	orbitControl()
+	pg.clear()
+	pg.drawingContext.drawImage(hc, 0, 0, pg.width, pg.height)
+	texture(pg)
+	//rotateY(millis() / 1000)
+	translate(0, -height / 3)
+	sphere(sliderSize.value())
+	pop()
+
+
+
+
+	fill(255 - sliderColor.value(), 0, random(255))
+	textAlign(CENTER)
+	textFont(font)
+	textSize(102 + (mouseX / width) * 100)
+	rotate(frameCount * sliderSpin.value())
+	text("DISCO", 0, 0)
+
+
+function saveFrame(PartyCreator){ 
+	let timestamp = (new Date()).toISOString().replace(/[^0-9]/g, '').slice(0, -3); 
+	var filename = toolName + '_' + timestamp + '.png'; // with timestamp 
+	//var filename = toolName + '.png'; // without timestamp 
+	save(filename);  // use to save entire canvas 
+	// layer.save(filename); // use to save specific layer only 
+
+}
+}
+</script>
+
+</body>
+</html>

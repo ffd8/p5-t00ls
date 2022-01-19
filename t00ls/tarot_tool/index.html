@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>final_upload_002</title>
+	<meta charset="utf-8">
+	<!-- Compiled w/ P5LIVE, http://github.com/ffd8/p5live -->
+	<style type="text/css">
+		body{
+			margin:0;
+			background: #000;
+			overflow:hidden;
+		}
+		canvas{
+			position:fixed;
+			top:0;
+			left:0;
+			z-index:-1;
+			width:100vw;
+			height:100vh;
+			margin:0;
+		}
+	</style>
+	<script type="text/javascript">
+		// eco-mode = only render if window focused
+		window.onblur = function () {
+			noLoop();
+		};
+		window.onfocus = function () {
+			loop();
+		};
+	</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+<script type="text/javascript" src="https://unpkg.com/hydra-synth"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+//final_upload_002
+
+/* CUSTOM FUNCTIONS FOR P5LIVE */
+// keep fullscreen if window resized
+function windowResized() {
+	resizeCanvas(windowWidth, windowHeight);
+}
+
+// custom ease function
+function ease(iVal, oVal, eVal){
+	return oVal += (iVal - oVal) * eVal;
+}
+
+// processing compatibility
+function println(msg){
+	print(msg);
+}
+
+
+var credits = {
+	names: [
+		`Larissa.Brochella`
+		, `Vanessa.Goettle`
+	],
+	class: `MA`,
+	description: `Get your personal tarot card here
+				  ¯\_(ツ)_/¯ version 1 > still some stuff to fix`
+}
+
+
+let rotation = 0
+let rotationSpeed = 0
+let poster, scl = 1
+let song
+let song2
+let imgScale = 1
+let randomQ
+let index = 0
+let font
+let form = []
+let imagex = []
+let imagex2 = []
+let randomW
+let words = ["Moon", "Star", "Lovers", "Magician", "Death", "Boss Bitch", "Empress", "Laziness", "Fortune", "Fortitude", "Apéro", "Warrior"]
+
+
+let q = [{
+
+		question: "What do you prefer?",
+		a1: "your middle finger",
+		a2: "your ring finger",
+	},
+	{
+		question: "Who would you rather date?",
+		a1: "Marilyn Monroe",
+		a2: "Elvis",
+	},
+	{
+		question: "Where would you rather live?",
+		a1: "in a treehouse",
+		a2: "in a van",
+	},
+	{
+		question: "What tattoo would you prefer?",
+		a1: "the face of your mother",
+		a2: "ass antlers",
+	},
+	{
+		question: "What would you rather do?",
+		a1: "visit a cemetary by night",
+		a2: "go to an empty hospital",
+	},
+	{
+		question: "Let it spin!",
+		a1: "yeahhh",
+		a2: "yes of course",
+	}
+
+]
+
+
+function preload() {
+	imagex[0] = loadImage("data/images/image1.png")
+	imagex[1] = loadImage("data/images/image2.png")
+	imagex[2] = loadImage("data/images/image3.png")
+	imagex[3] = loadImage("data/images/image4.png")
+	imagex[4] = loadImage("data/images/image5.png")
+	imagex[5] = loadImage("data/images/image6.png")
+	imagex[6] = loadImage("data/images/image7.png")
+	imagex[7] = loadImage("data/images/image8.png")
+	imagex[8] = loadImage("data/images/image9.png")
+	imagex[9] = loadImage("data/images/image10.png")
+
+	imagex2[0] = loadImage("data/images/image11.png")
+	imagex2[1] = loadImage("data/images/image12.png")
+	imagex2[2] = loadImage("data/images/image13.png")
+	imagex2[3] = loadImage("data/images/image14.png")
+	imagex2[4] = loadImage("data/images/image15.png")
+	imagex2[5] = loadImage("data/images/image16.png")
+	imagex2[6] = loadImage("data/images/image17.png")
+
+
+	form[0] = loadImage("data/form/image1.png")
+	form[1] = loadImage("data/form/image2.png")
+	form[2] = loadImage("data/form/image3.png")
+	form[3] = loadImage("data/form/image4.png")
+	form[4] = loadImage("data/form/image5.png")
+	form[5] = loadImage("data/form/image6.png")
+	form[6] = loadImage("data/form/image7.png")
+
+
+	//BILD1-ANTWORT
+	q[0].a1Img = random(imagex)
+	q[0].a2Img = random(imagex)
+
+	q[1].a1Img = random(imagex2)
+	q[1].a2Img = random(imagex2)
+
+	q[2].a1Img = random(form)
+	q[2].a2Img = random(form)
+
+	q[3].a1Img = loadImage("data/images/image2.png")
+	q[3].a2Img = loadImage("data/images/image4.png")
+
+	q[4].a1Img = loadImage("data/images/image3.png")
+	q[4].a2Img = loadImage("data/images/image4.png")
+
+	q[5].a1Img = loadImage("data/images/image6.png")
+	q[5].a2Img = loadImage("data/images/image7.png")
+
+
+	fontmini = loadFont("data/fonts/Minipax-Regular.ttf")
+	fontcant = loadFont("data/fonts/Cantique-Normal.otf")
+	fontbluu = loadFont("data/fonts/bluunext-bolditalic.ttf")
+
+
+}
+
+let libs = ['https://unpkg.com/hydra-synth']
+
+// hydra canvas + init
+let hc = document.createElement('canvas') // hydra canvas + custom size
+hc.width = 640
+hc.height = 360
+let hydra = new Hydra({
+	detectAudio: false,
+	canvas: hc
+})
+
+let pg
+
+let hb = document.createElement('canvas') // hydra canvas + custom size
+hc.width = 640
+hc.height = 360
+let hydra2 = new Hydra({
+	detectAudio: false,
+	canvas: hc
+})
+
+
+speed = 0.3
+osc()
+gradient(2).mask(voronoi(), 50, 2)
+	.mult(osc(0.1, 0.1, -0.8)).color(.3, 0, -0.3)
+	.modulateRepeatX(osc(150), 2.5, ({
+		time
+	}) => Math.sin(time) * 0.05)
+	.scale(4, 0.3, 0.7).rotate()
+	.out(o0)
+
+// hydraSandbox - stop
+
+function setup() {
+	windowResized = null
+	createCanvas(windowWidth, windowHeight, WEBGL)
+	pg = createGraphics(hc.width, hc.height)
+	poster = createGraphics(300, 500)
+	imageMode(CENTER)
+	angleMode(DEGREES)
+	let randomQ = random(q)
+	let randomW = random(words)
+
+	song = loadSound('data/music/cresent-hell-escalate-3-11647.mp3')
+	song2 = loadSound('data/music/dream-sound-effect-downscale-7134.mp3')
+
+
+}
+
+
+
+function draw() {
+	//	orbitControl(5)
+	background(27, 12, 45)
+	pg.clear()
+	pg.drawingContext.drawImage(hc, 0, 0, pg.width, pg.height)
+	texture(pg)
+	push()
+	noStroke()
+	tint(255, 127)
+	translate(0, 0, -150)
+	plane(windowWidth * 1.5, windowHeight * 1.5)
+	texture(pg, .1)
+	pop()
+
+
+	//make poster move to the middle when gone through all the qs
+	push()
+	if(index < q.length) {
+
+		translate(poster.width * 1.3, 0)
+		push()
+		translate(0, 0, -4)
+		fill(143, 206, 200)
+		pointLight(20, 206, 200, 30, 100, 350)
+		box(300, 500, 3)
+		pop()
+
+		//draw poster
+		poster.textAlign(CENTER, CENTER)
+		image(poster, poster.width * .0, poster.height * .0, poster.width, poster.height)
+
+		//hydra
+		push()
+		noStroke()
+		translate(0, 0, -7)
+		texture(pg)
+		plane(300, 500)
+		pop()
+
+		pop()
+
+		push()
+		fill(143, 206, 200)
+		textFont(fontbluu)
+		textAlign(LEFT)
+		textSize(20)
+		push()
+		if(mouseX < width / 4) {
+			textSize(30)
+		}
+		text(q[index].a1, width * -.4, height * .15)
+		pop()
+
+
+		if(mouseX > width / 4) {
+			textSize(30)
+		}
+		text(q[index].a2, width * -.15, height * .15)
+		pop()
+
+		push()
+		textAlign(LEFT)
+		fill(230, 2, 90)
+		textFont(fontmini)
+		textSize(70)
+		text("The Fortune Teller", width * -.4, height * -.28)
+		pop()
+
+		//ans
+		push()
+		fill(143, 206, 200)
+		textAlign(LEFT)
+		textFont(fontbluu)
+		textSize(40)
+		text(q[index].question, width * -.4, 0)
+		pop()
+
+	} else if(index == q.length) {
+
+
+		textFont(fontmini)
+		textAlign(CENTER, CENTER)
+		textSize(70)
+		fill(230, 2, 90)
+		text("Life wasn't meant to be easy", 0, height * -.4)
+
+		push()
+		textSize(30)
+		text("start again", width * -.4, height * .4)
+		pop()
+
+		//rotation
+		rotationSpeed = map(sin(frameCount), 0, 1, 0, 360)
+		rotation = rotationSpeed
+		rotateY(rotation)
+
+		//box
+		push()
+		translate(0, poster.height * .15, -4)
+		fill(143, 206, 200)
+		pointLight(20, 206, 200, 30, 100, 350)
+		box(300, 500, 3)
+		pop()
+
+		//hydra
+		push()
+		noStroke()
+		translate(0, poster.height * .15, -7)
+		texture(pg)
+		plane(300, 500)
+		pop()
+
+		image(poster, poster.width * .0, poster.height * .15, poster.width, poster.height)
+
+	}
+
+
+}
+
+function mousePressed() {
+
+
+	//q1&q2 - images
+	push()
+	if(mouseX < width * .3 && index < 1) {
+		poster.tint(230, 2, 90)
+		poster.image(q[index].a1Img, poster.width * .0, poster.height * .0, poster.width, poster.height)
+
+	} else if(mouseX > width * .3 && index < 1) {
+		poster.tint(97, 119, 185) //blau
+		poster.image(q[index].a2Img, poster.width * .0, poster.height * .0, poster.width, poster.height)
+	}
+	pop()
+
+	push()
+	if(mouseX < width * .3 && index == 1) {
+		poster.tint(143, 206, 200)
+		poster.image(q[index].a1Img, poster.width * .3, poster.height * -.1, poster.width, poster.height)
+
+	} else if(mouseX > width * .3 && index == 1) {
+		poster.tint(143, 71, 226) //lila
+		poster.image(q[index].a2Img, poster.width * .3, poster.height * -.1, poster.width, poster.height)
+	}
+	pop()
+
+	push()
+	if(mouseX < width * .3 && index == 2) {
+		poster.tint(68, 31, 104)
+		poster.image(q[index].a1Img, poster.width * .1, poster.height * -.3, poster.width, poster.height)
+	} else if(mouseX > width * .3 && index == 2) {
+		poster.tint(211, 155, 197)
+		poster.image(q[index].a2Img, poster.width * -.1, poster.height * .2, poster.width, poster.height)
+	}
+	pop()
+
+	push()
+	if(mouseX < width * .3 && index == 3) { //für muster o. text o.ä. bei letzter frage (wie ist es, wenn random frage ausgesuch?)
+		poster.stroke(200)
+		poster.noFill()
+		poster.rect(random(poster.width), random(poster.height), random(poster.width), poster.height * .8)
+	} else if(mouseX > width * .3 && index == 3) { //für muster o. text o.ä. bei letzter frage (wie ist es, wenn random frage ausgesuch?)
+		poster.stroke(200)
+		poster.noFill()
+		poster.ellipse(random(poster.width), random(poster.height), poster.width * 1, poster.height * .6)
+	}
+	pop()
+	push()
+	if(mouseX < width * .3 && index == q.length - 2) {
+		poster.stroke(200)
+		poster.fill(200)
+		poster.textAlign(LEFT, BOTTOM)
+		poster.textFont(fontcant)
+		poster.textSize(55)
+		poster.text(random(words), poster.width * .0, random(poster.height * .1, poster.height * 1))
+	} else if(mouseX > width * .3 && index == q.length - 2) {
+		poster.stroke(200)
+		poster.fill(200)
+		poster.textAlign(LEFT, BOTTOM)
+		poster.textFont(fontcant)
+		poster.textSize(55)
+		poster.text(random(words), poster.width * .0, random(poster.height * .1, poster.height * 1))
+	}
+
+
+	pop()
+	push()
+	if(index == 0) {
+		song2.play();
+		song2.setVolume(0.5)
+	} else if(index == q.length - 1) {
+		song.play();
+		song.setVolume(0.5)
+	} else if(index == 0) {
+		song.stop()
+	}
+
+	pop()
+
+	push()
+	if(mouseX < width * .5 && mouseY > height / 5 && index == q.length) {
+		clear()
+		setup()
+		resetStuff()
+	}
+	pop()
+
+	push()
+
+	index = index + 1
+
+	if(index == q.length + 1) {
+		index = 0
+
+		pop()
+	}
+}
+function resetStuff(){
+	q[0].a1Img = random(imagex)
+	q[0].a2Img = random(imagex)
+
+	q[1].a1Img = random(imagex2)
+	q[1].a2Img = random(imagex2)
+
+	q[2].a1Img = random(form)
+	q[2].a2Img = random(form)
+}
+
+function saveFrame(tarot) {
+	let timestamp = (new Date()).toISOString().replace(/[^0-9]/g, '').slice(0, -3);
+	var filename = tarot + '_' + timestamp + '.png'; // with timestamp 
+	//var filename = toolName + '.png'; // without timestamp 
+	save(filename);  // use to save entire canvas 
+	//poster.save(filename); // use to save specific layer only 
+}
+</script>
+
+</body>
+</html>
