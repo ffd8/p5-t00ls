@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Calendar-tool-version-01</title>
+	<title>Calendar-tool-version-01_002</title>
 	<meta charset="utf-8">
 	<!-- Compiled w/ P5LIVE, http://github.com/ffd8/p5live -->
 	<style type="text/css">
@@ -36,7 +36,7 @@
 <body>
 
 <script type="text/javascript">
-//Calendar-tool-version-01
+//Calendar-tool-version-01_002
 
 /* CUSTOM FUNCTIONS FOR P5LIVE */
 // keep fullscreen if window resized
@@ -55,14 +55,13 @@ function println(msg){
 }
 
 
-var credits = { 
-	names : [ 
-		`Luise.Kalkbrenner`
-		,`Yaao.Yiang` 
-	] 
-	,class : `MA` 
-	,description : `Coming soon....` 
-} 
+var credits = {
+	names: [
+		`Luise.Kalkbrenner`, `Yaao.Jiang`
+	],
+	class: `MA`,
+	description: `Coming soon....`
+}
 
 
 /*	
@@ -81,8 +80,8 @@ let pg = [synthCount],
 
 for(let i = 0; i < synthCount; i++) {
 	hc[i] = document.createElement('canvas') // hydra canvas + custom size
-	hc[i].width = 640*2 // set resolution width
-	hc[i].height = 360*2 // set resolution height
+	hc[i].width = 640 * 2 // set resolution width
+	hc[i].height = 360 * 2 // set resolution height
 
 	synth[i] = new Hydra({
 		detectAudio: false, // no mic
@@ -98,7 +97,8 @@ for(let i = 0; i < synthCount; i++) {
 synth[0].src(synth[0].o0)
 	.layer(synth[0].src(synth[0].s0))
 	.scale(.996)
-	.color(-2, 4, 6)
+	//.color(-2, 4, 6)
+	.color(() => mode == 3 ? -1 : -2, () => mode > 1 ? 2 : 4, () => mode == 2 ? -6 : 6)
 	.modulateScale(synth[0].src(synth[0].s0).kaleid(10, 10), .5)
 	.modulateScale(synth[0].osc(5, .1), .02)
 	.modulateScale(synth[0].osc(() => mode, .3)) //osc2
@@ -131,15 +131,14 @@ synth[1].shape(15, 0.7, .3)
 synth[3].osc(50, 0.016, 1.109)
 	.mult(synth[3].osc(1.26, -0.8)
 		.modulate(synth[3].osc(2)
-			.rotate(5, 1), 20))
+			.rotate(5, () => mode == 9 ? -1 : 1), 20))
 	.color(10, -0.6, 6)
 	.color(() => mode, () => mode == 7 ? (0.6, 1, 0.6 ): 1)
 	.color(() => mode == 8 ? (6, 0.4, -0.9) : 1)
 	.color(() => mode == 9 ? (1.9, -4, 0.1) : 1)
 	.saturate(0.9)
-	.scale(1, () => 0.123 + a.fft[1])
+	.scale(() => mode == 8 ? 2 : 1, () => 0.123 + a.fft[1])
 	.out(synth[3].o0);
-
 
 //--------------------------------------october - decemer-----------
 synth[4].shape(3, .5)
@@ -176,7 +175,7 @@ let pickMonth
 let mPosX, mPosY
 let mode = 0
 let sliderBg, sliderAlpha, sliderColor, sliderSize, sliderStrokeColor, sliderStrokeWeight, sliderRotation, sliderTextPos
-
+let guiHolder
 
 
 
@@ -199,10 +198,12 @@ function setup() {
 	for(let i = 0; i < synthCount; i++) {
 		pg[i] = createGraphics(hc[i].width, hc[i].height)
 	}
-	
+
 	//------------------------month drop down----------------------------------------
+
 	pickMonth = createSelect()
-	pickMonth.position(width / 1.3, 45)
+		.class('dropdown')
+	pickMonth.position(width / 1.12, 25)
 	for(let e = 0; e < month.length; e++) {
 		//pickMonth.option(i + 1, month[i]) //option: text
 		pickMonth.option(month[e], e + 1) //option: value
@@ -215,27 +216,152 @@ function setup() {
 	//-----------------------------	// pass p5 canvas to hydra as s0 source--------------------
 
 
-	//-----------------------------------All sliders-----------------
+	//-----------------------------------All sliders-----------------and stylised!-------
+	guiHolder = createDiv()
+		.class('guiHolder') // add class for styling via CSS 
 
-	sliderAlpha = createSlider(0, 255, 200, 10);
-	sliderAlpha.position(width / 1.3, 90)
-	sliderColor = createSlider(10, 255, 150, 10);
-	sliderColor.position(width / 1.3, 130);
-	sliderSize = createSlider(10, 500, 200, 5);
-	sliderSize.position(width / 1.3, 170); //+40
-	sliderStrokeColor = createSlider(0, 255, 10, 10);
-	sliderStrokeColor.position(width / 1.3, 210);
-	sliderStrokeWeight = createSlider(0, 12, 10, 1);
-	sliderStrokeWeight.position(width / 1.3, 250);
-	sliderTextPos = createSlider(100, height - 100, height / 2.1, 10);
-	sliderTextPos.position(width / 1.3, 290)
+	// use styled div as label 
+	createDiv('Alpha')
+		.parent(guiHolder) // place inside gui div 
+		.class('label') // class for CSS 
+
+
+	sliderAlpha = createSlider(0, 255, 200, 10)
+		.parent(guiHolder) //  place inside gui div 
+		.class('slider') // class for CSS
+		.input(function() {
+			background(0, 0, this.value()) // use immediately, basic demo 
+		})
+
+
+	//sliderAlpha.position(width / 1.3, 90)
+	createDiv('Color')
+		.parent(guiHolder) // place inside gui div 
+		.class('label')
+	sliderColor = createSlider(10, 255, 150, 10)
+		.parent(guiHolder) //  place inside gui div 
+		.class('slider') // class for CSS
+		.input(function() {
+			background(0, 0, this.value()) // use immediately, basic demo 
+		})
+
+	createDiv('Size')
+		.parent(guiHolder) // place inside gui div 
+		.class('label')
+	sliderSize = createSlider(10, 500, 200, 5)
+		.parent(guiHolder) //  place inside gui div 
+		.class('slider') // class for CSS
+		.input(function() {
+			background(0, 0, this.value()) // use immediately, basic demo 
+		})
+
+	createDiv('StrokeColor')
+		.parent(guiHolder) // place inside gui div 
+		.class('label')
+	sliderStrokeColor = createSlider(0, 255, 10, 10)
+		.parent(guiHolder) //  place inside gui div 
+		.class('slider') // class for CSS
+		.input(function() {
+			background(0, 0, this.value()) // use immediately, basic demo 
+		})
+
+	createDiv('StrokeWeight')
+		.parent(guiHolder) // place inside gui div 
+		.class('label')
+	sliderStrokeWeight = createSlider(0, 12, 10, 1)
+		.parent(guiHolder) //  place inside gui div 
+		.class('slider') // class for CSS
+		.input(function() {
+			background(0, 0, this.value()) // use immediately, basic demo 
+		})
+
+	createDiv('Position')
+		.parent(guiHolder) // place inside gui div 
+		.class('label')
+	sliderTextPos = createSlider(100, height - 100, height / 2.1, 10)
+		.parent(guiHolder) //  place inside gui div 
+		.class('slider') // class for CSS
+		.input(function() {
+			background(0, 0, this.value()) // use immediately, basic demo 
+		})
+
+
+
+
+	//sliderColor.position(width / 1.3, 130);
+	//sliderSize.position(width / 1.3, 170); //+40
+	//sliderStrokeColor.position(width / 1.3, 210);
+	//sliderStrokeWeight.position(width / 1.3, 250);
+	//sliderTextPos.position(width / 1.3, 290)
+
+
+	createElement('style', ` 
+  *{ 
+    outline: none; 
+    box-sizing: border-box; 
+  } 
+    .guiHolder{ 
+      position: fixed; 
+      right: 50px; 
+      top: 50px; 
+      border: 2px solid #16bba8 ; 
+      border-radius: 10px; 
+      padding: 10px; 
+    } 
+    .label{ 
+      color:#13bba4; 
+      font-family:sans-serif; 
+      font-size:10pt; 
+      text-decoration:underline; 
+      padding:5px; 
+    } 
+    .slider {
+      overflow: hidden;
+      width: 80px;
+      -webkit-appearance: none;
+      background-color: #858914;
+    }
+    
+   .slider::-webkit-slider-runnable-track {
+      height: 10px;
+      -webkit-appearance: none;
+      color: #13bba4;
+      margin-top: -1px;
+    }
+    
+    .slider::-webkit-slider-thumb {
+      width: 10px;
+      -webkit-appearance: none;
+      height: 10px;
+      cursor: ew-resize;
+      background: #434343;
+      box-shadow: -80px 0 0 80px #43e5f7;
+    } 
+        .dropdown {
+      overflow: hidden;
+      -webkit-appearance: none;
+        background-color: #4CAF50;
+  color: white;
+
+  font-size: 18px;
+  border: none;
+  cursor: pointer;
+   position : fixed;
+  display: inline-block;
+    }
+    
+
+ 
+
+    `)
+
 
 
 }
 
 function windowResized() {
 	resizeCanvas(windowWidth, windowHeight);
-	pickMonth.position(width / 1.3, 45);
+	pickMonth.position(width / 1.12, 25);
 	sliderBg.position(width / 1.3, 90);
 	sliderColor.position(width / 1.3, 130);
 	sliderSize.position(width / 1.3, 170);
@@ -254,7 +380,7 @@ function draw() {
 
 	//--------------------------------------- if statement started ---------------------------------------
 	if(mode == 0 || mode == 1 || mode == 2 || mode == 3) {
-	//if(mode == 1 || mode == 2 || mode == 3) {
+		//if(mode == 1 || mode == 2 || mode == 3) {
 		push() /
 			texture(pg[0])
 		plane(width, height)
@@ -320,7 +446,7 @@ function draw() {
 	} else if(mode == 10) {
 		fill(100 + sliderColor.value(), 100, 0, sliderAlpha.value())
 	} else if(mode == 7 || mode == 8 || mode == 9) {
-		fill(255, 110, 10+sliderColor.value())
+		fill(255, 110, 10 + sliderColor.value())
 	}
 
 	text(month[pickMonth.value() - 1], 0, sliderTextPos.value() - height / 2)
@@ -331,6 +457,12 @@ function draw() {
 
 }
 
+
+// function keyPressed() { // *** build Button instead! ***
+// 	if(key == 'S') {
+// 		pg.save('P5LIVE_hydra.png') // save hydra texture
+// 	}
+// }
 function saveFrame(toolName){ 
 	let timestamp = (new Date()).toISOString().replace(/[^0-9]/g, '').slice(0, -3); 
 	var filename = toolName + '_' + timestamp + '.png'; // with timestamp 
@@ -338,6 +470,8 @@ function saveFrame(toolName){
 	save(filename);  // use to save entire canvas 
 	// layer.save(filename); // use to save specific layer only 
 } 
+
+
 </script>
 
 </body>

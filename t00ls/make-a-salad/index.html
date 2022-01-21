@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>make your own salad</title>
+	<meta charset="utf-8">
+	<!-- Compiled w/ P5LIVE, http://github.com/ffd8/p5live -->
+	<style type="text/css">
+		body{
+			margin:0;
+			overflow:hidden;
+		}
+		canvas{
+			position:fixed;
+			top:0;
+			left:0;
+			z-index:-1;
+			width:100vw;
+			height:100vh;
+			margin:0;
+		}
+	</style>
+	<script type="text/javascript">
+		// eco-mode = only render if window focused
+		window.onblur = function () {
+			noLoop();
+		};
+		window.onfocus = function () {
+			loop();
+		};
+	</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+//make your own salad
+
+/* CUSTOM FUNCTIONS FOR P5LIVE */
+// keep fullscreen if window resized
+function windowResized() {
+	resizeCanvas(windowWidth, windowHeight);
+}
+
+// custom ease function
+function ease(iVal, oVal, eVal){
+	return oVal += (iVal - oVal) * eVal;
+}
+
+// processing compatibility
+function println(msg){
+	print(msg);
+}
+
+
+let plates = []
+let button, button2, buttonTopping, buttonSauce
+let sliderSize
+let mySelect
+let mySelect2
+let colorPicker
+
+
+
+function preload() {
+	plates.push(loadImage('https://cdn.glitch.me/73c4dd05-dc51-4fab-9187-818c744eec3c%2Fplates-01.png?v=1639149517232'))
+	plates.push(loadImage('https://cdn.glitch.me/73c4dd05-dc51-4fab-9187-818c744eec3c%2Fplates-03.png?v=1639149515160'))
+	plates.push(loadImage('https://cdn.glitch.me/73c4dd05-dc51-4fab-9187-818c744eec3c%2Fplates-04.png?v=1639149514006'))
+	plates.push(loadImage('https://cdn.glitch.me/73c4dd05-dc51-4fab-9187-818c744eec3c%2Fplates-06.png?v=1639398525646'))
+	plates.push(loadImage('https://cdn.glitch.me/73c4dd05-dc51-4fab-9187-818c744eec3c%2Fplates-05.png?v=1639398526917'))
+
+}
+
+function setup() {
+	createCanvas(windowWidth, windowHeight)
+		background(0)
+
+	buildGUI()
+
+	brush = createGraphics(60, 60)
+	layer = createGraphics(width / 2, height / 2)
+	layer.imageMode(CENTER)
+	imageMode(CENTER)
+
+
+
+	// sliderSize = createSlider(0, 100, .1, .01)
+	// sliderSize.position(width * .80, 110)
+
+
+
+
+	// colorPicker = createColorPicker('rgb(245, 205, 108)');
+	// colorPicker.position(width * .80, 230);
+
+
+
+
+	imageMode(CENTER)
+
+	for(let p of plates) {
+		p.resize(0, height)
+
+	}
+
+	randoPlate = random(plates)
+	chooseBase()
+
+}
+
+function buildGUI() {
+
+	guiHolder = createDiv()
+		.class('guiholder')
+
+	mySelect = createSelect()
+		.parent(guiHolder)
+		.position(20, 80)
+	mySelect.option('lettuce')
+	mySelect.option('olives')
+	mySelect.option('eggs')
+	mySelect.option('bacon')
+	mySelect.option('tomatoes')
+	mySelect.option('carrots')
+	//mySelect.selected('toppings')
+
+	buttonTopping = createButton('add topping')
+		.parent(guiHolder)
+		.position(150, 80)
+	buttonTopping.mousePressed(addTopping)
+
+	button = createButton('choose a base')
+		.parent(guiHolder)
+		.position(20, 20)
+	button.mousePressed(chooseBase)
+	
+	button = createButton('add some cheese!')
+		.parent(guiHolder)
+		.position(20, 120)
+	button.mousePressed(cheese)
+
+
+	button2 = createButton('season!')
+		.parent(guiHolder)
+		.position(20, 200)
+	button2.mousePressed(seasoning)
+	
+ 
+
+	// buttonSauce = createButton('add a sauce')
+	// buttonSauce.position(width * .80, 200)
+	// buttonSauce.mousePressed(sauces)
+
+
+
+	createElement('style', `
+	.guiholder{
+		position:fixed;
+		right:50px;
+		top:50px;
+		width:250px;
+		height:250px;
+		border: 5px solid #fff
+		
+	}
+	
+	`)
+}
+
+function draw() {
+
+
+
+
+	// fill(200, 210, 220)
+	// plate()
+
+
+
+}
+
+function addTopping() {
+
+	if(mySelect.value() == 'lettuce') {
+		noStroke()
+		fill(140, 190, 110)
+		lettuce()
+	} else if(mySelect.value() == 'olives') {
+		noStroke()
+		fill(99, 120, 8)
+		olive()
+	} else if(mySelect.value() == 'tomatoes') {
+		fill(150, 0, 0)
+		noStroke()
+		tomato()
+	} else if(mySelect.value() == 'carrots') {
+		fill(255, 88, 9)
+		noStroke()
+		carrot()
+	} else if(mySelect.value() == 'eggs') {
+		noStroke()
+		fill(255)
+		egg()
+	} else if(mySelect.value() == 'bacon') {
+		fill(150, 25, 30)
+		noStroke()
+		bacon()
+	}
+}
+
+
+function chooseBase() {
+	image(randoPlate, width / 2, height / 2)
+	randoPlate = random(plates)
+
+}
+
+function seasoning() {
+
+	push()
+	noStroke()
+	fill(random(255))
+	randoPosition()
+	circle(0, 0, random(10))
+	pop()
+
+
+}
+
+function cheese() {
+
+	push()
+	noStroke()
+	fill(245, 205, 108)
+	randoPosition()
+	rotate(radians(random(360)))
+	rect(0, 0, 20, 50)
+	pop()
+
+
+}
+
+function sauces() {
+
+	push()
+	randoPosition()
+	image(layer, 0, 0)
+	pop()
+
+	if(keyIsPressed && key == ' ') {
+		brush.circle(random(width), random(height), random(5)) // x, y, size
+
+	}
+
+	image(brush, mouseX, mouseY) // img(src, x, y)
+	noCursor()
+
+	if(mouseIsPressed) {
+		//imageMode(CENTER)
+		layer.image(brush, mouseX, mouseY)
+
+	}
+
+
+
+}
+
+function keyPressed() {
+	if(key.toLowerCase() == 'b') { // checks for either 'b' or 'B'
+		brush.clear()
+		brush.fill(random(255), random(255), random(255))
+	}
+
+	if(keyCode == 8) { // 8 = delete
+		layer.clear()
+	}
+
+}
+
+
+
+function tomato() {
+
+	push()
+	randoPosition()
+	rotate(radians(random(360)))
+	arc(0, 0, 140, 140, PI, radians(360))
+	fill(255, 0, 0)
+	//fill(255, 0, 0)
+
+	fill(200, 0, 0)
+	arc(0, 0, 120, 120, PI, radians(360))
+	//fill(random(255), 0, 0)
+	pop()
+}
+
+function carrot() {
+
+	push()
+	randoPosition()
+	ellipse(0, 0, 100, 100)
+	noStroke()
+
+	fill(240, 127, 37)
+	ellipse(0, 0, 80, 80)
+	noStroke()
+	pop()
+
+}
+
+function olive() {
+
+	push()
+	randoPosition()
+	rotate(radians(random(360)))
+	fill(99, 120, 30)
+	ellipse(0, 0, 50, 80)
+
+	fill(200, 0, 0)
+	//ellipse(width / 2, height / 2, 20, 10)
+	//	fill(99, 120, 30)
+	ellipse(0, -20, 12, 10)
+	pop()
+}
+
+function lettuce() {
+
+
+	push()
+	randoPosition()
+	beginShape()
+	for(let i = 0; i < random(5, 10); i++) {
+
+		curveVertex(random(-200, 200), random(-200, 200))
+	}
+
+	fill(0, random(100, 200), 0)
+	endShape()
+	pop()
+
+}
+
+function egg() {
+
+	push()
+	randoPosition()
+	rotate(radians(random(360)))
+	ellipse(0, 0, 120, 140)
+	fill(99, 120, 30)
+
+	fill(255, 200, 55)
+	ellipse(0, 0, 65, 60)
+	fill(99, 120, 30)
+	pop()
+
+
+}
+
+function bacon() {
+
+	push()
+	randoPosition()
+	rotate(radians(random(360)))
+	square(0, 0, 30)
+	fill(99, 120, 30)
+	pop()
+
+
+}
+
+function randoPosition() {
+	//randomSeed(3)
+	let x = random(width / 2 - randoPlate.width / 5, width / 2 + randoPlate.width / 5)
+	let y = random(height / 2 - randoPlate.height / 5, height / 2 + randoPlate.height / 5)
+	translate(x, y)
+}
+
+
+</script>
+
+</body>
+</html>

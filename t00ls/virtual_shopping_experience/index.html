@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>finalebitte_002</title>
+	<title>virtual_shopping_experience</title>
 	<meta charset="utf-8">
 	<!-- Compiled w/ P5LIVE, http://github.com/ffd8/p5live -->
 	<style type="text/css">
@@ -34,7 +34,7 @@
 <body>
 
 <script type="text/javascript">
-//finalebitte_002
+//virtual_shopping_experience
 
 /* CUSTOM FUNCTIONS FOR P5LIVE */
 // keep fullscreen if window resized
@@ -55,12 +55,14 @@ function println(msg){
 
 var credits = {
 	names: [
-		`claudia.nuenlist`
-		, `anna.dippert`
+		`claudia.nuenlist`, `anna.dippert`
 	],
-	class: `MA1`,
-	description: `virtual virtuose shopping experience`
+	class: `MA 1`,
+	description: `Drag your shopping items on the conveyor belt and enjoy your virtual virtuose shopping experience!
+	`
 }
+
+
 // objects not selectable as singles
 // soundsareawfulindisplay()
 // slider for speed of conveyor belt
@@ -69,10 +71,21 @@ var credits = {
 let finger
 let shoppingbasket
 let migros
-
-//Sound
 let alarmSound
 
+
+//background
+
+let imgMond
+let imgMigros
+let imgSunneuntergang
+let imgMigrosBW
+let imgArktis
+let imgHydra
+let imgBerge
+let imgUnterwasser
+
+let holdingItem = -1
 
 // items
 let apfel
@@ -86,294 +99,291 @@ let banane
 
 
 //ALL INSTRUMENTS
-
 let everything = [{
 		name: 'apfel',
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973%2FApfel_.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973%2Fapfel_2015_mitte.jpg",
+		model: "data/apfel.obj",
+		texture: "data/apfel.jpg",
 		rotX: 0,
 		rotY: 0,
 		rotZ: 0,
 		groesse: 0.5,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/Gregor%20M%20Noise%20Fill%205.mp3"
+		sound: "data/apfel.mp3"
 	},
 	{
 		name: 'limone',
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973%2Flime_124.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973%2Flime_124_baseColor.png",
+		model: "data/limone.obj",
+		texture: "data/limone.png",
 		rotX: 180,
 		rotY: 180,
 		rotZ: 0,
 		groesse: 0.8,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/Gregor%20M%20Perc%202.mp3",
+		sound: "data/limone.mp3",
 	},
 	{
 		name: 'bread',
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973%2FBread.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973%2FBread.png",
+		model: "data/bread.obj",
+		texture: "data/bread.png",
 		rotX: 180,
 		rotY: 90,
 		rotZ: 0,
 		groesse: 1,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/Gregor%20M%20Robot%2025.mp3",
+		sound: "data/bread.mp3",
 
 	},
 	{
 		name: "watermelon",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973%2Fwatermelon.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973%2Fwatermelon.jpg",
+		model: "data/watermelon.obj",
+		texture: "data/watermelon.jpg",
 		rotX: 0,
 		rotY: 0,
 		rotZ: 0,
 		groesse: 1.3,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/Gregor%20M%20Perc%2018.mp3",
+		sound: "data/watermelon.mp3",
 	},
 	{
 		name: "coffeecup",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973%2Fcoffee%20cup.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973%2Fcoffee%20cup.jpg",
+		model: "data/coffeecup.obj",
+		texture: "data/coffeecup.jpg",
 		rotX: 180,
 		rotY: 0,
 		rotZ: 0,
 		groesse: 1,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/Gregor%20M%20Snare%202.mp3"
+		sound: "data/coffeecup.mp3",
 
 	},
 	{
 		name: "veganrotisseriechicken",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973%2Fveganrotisseriechicken.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973%2Fveganrotisseriechicken.jpg",
+		model: "data/veganrotisseriechicken.obj",
+		texture: "data/veganrtisseriechicken.jpg",
 		rotX: 270,
 		rotY: 180,
 		rotZ: 90,
 		groesse: 1,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/587782_leonard-b-blaesing_short-metal-intro-fill.mp3",
+		sound: "data/veganrotisseriechicken.mp3",
 	},
 	{
 		name: "orange",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973%2Forange.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973%2Forange.jpg",
+		model: "data/orange.obj",
+		texture: "data/orange.jpg",
 		rotX: 270,
 		rotY: 0,
 		rotZ: 0,
 		groesse: 0.6,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/487454_ranner_object-in-the-water.mp3",
+		sound: "data/orange.mp3",
 
 	},
 	{
 		name: "banane",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973%2Fbanana.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973%2Fbanane.jpg",
+		model: "data/banane.obj",
+		texture: "data/banane.jpg",
 		rotX: 180,
 		rotY: 0,
 		rotZ: 0,
 		groesse: 1.5,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/Gregor%20M%20Channel%20Surfing%207.mp3",
+		sound: "data/banane.mp3",
 	},
 	{
 		name: "ananas",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973%2Fananas.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973%2Fananas.png",
+		model: "data/ananas.obj",
+		texture: "data/ananas.png",
 		rotX: 180,
 		rotY: 0,
 		rotZ: 0,
 		groesse: 1.8,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/234061_dxe10_a-minor-chord-ringout%20(1).mp3",
+		sound: "data/ananas.mp3",
 	},
 
 	{
 		name: "carrot",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/10170_Carrot_v01_L3.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/Carrot_v01.jpg",
+		model: "data/carrot.obj",
+		texture: "data/carrot.jpg",
 		rotX: 0,
 		rotY: 90,
 		rotZ: 0,
 		groesse: 2,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/213897_garzul_organ-sounding-synth-sequence.mp3",
+		sound: "data/carrot.mp3",
 	},
 
 	{
 		name: "glace",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/glace.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/glace.png",
+		model: "data/glace.obj",
+		texture: "data/glace.png",
 		rotX: 180,
 		rotY: 0,
 		rotZ: 0,
 		groesse: 1,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/209943_veiler_bass-16b.mp3",
+		sound: "data/glace.mp3",
 	},
 
 	{
 		name: "aubergine",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/aubergine.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/aubergine.png",
+		model: "data/aubergine.obj",
+		texture: "data/aubergine.png",
 		rotX: 180,
 		rotY: 0,
 		rotZ: 0,
 		groesse: 1,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/185549_crazyduckman_a-quack.mp3",
+		sound: "data/aubergine.mp3",
 	},
 
 	{
 		name: "nudle",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/nudle.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/nudle.jpg",
+		model: "data/nudle.obj",
+		texture: "data/nudle.jpg",
 		rotX: 180,
 		rotY: 270,
 		rotZ: 0,
 		groesse: 1,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/138347_setuniman_echoing-quack-0c-16g.mp3",
+		sound: "data/nudle.mp3",
 	},
 
 	{
 		name: "handy",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/handy.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/hand.jpg",
+		model: "data/handy.obj",
+		texture: "data/handy.jpg",
 		rotX: 180,
 		rotY: 0,
 		rotZ: 0,
 		groesse: 1.5,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/Gregor%20M%20Comb%206.wav",
+		sound: "data/handy.mp3",
 	},
-
 	{
 		name: "dose",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/dose.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/m-classic-ravioli-alla-napoletana.jpg?v=1639593794953",
+		model: "data/dose.obj",
+		texture: "data/dose.jpg",
 		rotX: 18180,
 		rotY: 0,
 		rotZ: 0,
 		groesse: 0.6,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/97244_mikey-eff_mfmetal-short-pwrchrd-estr-c.mp3",
+		sound: "data/dose.mp3",
 	},
 
 	{
 		name: "kaugummi",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/kaugummi.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/kaugummi.jpg",
+		model: "data/kaugummi.obj",
+		texture: "data/kaugummi.jpg",
 		rotX: 180,
 		rotY: 0,
 		rotZ: 0,
 		groesse: 1,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/Gregor%20M%20Wow%204.mp3"
+		sound: "data/kaugummi.mp3"
 	},
 
 	{
 		name: "iistee",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/istee.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/kult-ice-tea-pfirsich.jpg?v=1639595226187",
+		model: "data/istee.obj",
+		texture: "data/iistee.jpg",
 		rotX: 180,
 		rotY: 0,
 		rotZ: 0,
 		groesse: 1.5,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/Gregor%20M%20Wibble%20Wobble.mp3",
+		sound: "data/istee.mp3",
 	},
 
 	{
 		name: "joghurt",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/JOGURT.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/excellence-truffes-joghurt-mit-rahm.jpg",
+		model: "data/jogurt.obj",
+		texture: "data/joghurt.jpg",
 		rotX: 180,
 		rotY: 180,
 		rotZ: 0,
 		groesse: .5,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/Gregor%20M%20Clipped%20Fill%2014.mp3",
+		sound: "data/joghurt.mp3",
 
 	},
 
 	{
 		name: "aromat",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/aromat.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/aromat.png?v=1639597754536",
+		model: "data/aromat.obj",
+		texture: "data/aromat.png",
 		rotX: 180,
 		rotY: 0,
 		rotZ: 0,
 		groesse: .5,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/Gregor%20M%20Clap%20Fill%202.mp3",
+		sound: "data/aromat.mp3",
 	},
 
 	{
 		name: "milch",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/MILCH.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/valflora-milch-uht-ip-suisse.jpg",
+		model: "data/milch.obj",
+		texture: "data/milch.jpg",
 		rotX: 180,
 		rotY: 270,
 		rotZ: 0,
 		groesse: 1.2,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/Gregor%20M%20Channel%20Surfing%207.mp3",
+		sound: "data/milch.mp3",
 	},
-
 	{
 		name: "chips",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/chips.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/zweifel-chips-paprika.jpg",
+		model: "data/chips.obj",
+		texture: "data/chips.jpg",
 		rotX: 180,
 		rotY: 180,
 		rotZ: 0,
 		groesse: 1.2,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/Gregor%20M%20Burning.mp3",
+		sound: "data/chips.mp3",
 	},
 
 	{
 		name: "cornflakes",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/cornflakes.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/FrostedMiniWheatsTextureMap.jpg",
+		model: "data/cornflakes.obj",
+		texture: "data/cornflakes.jpg",
 		rotX: 0,
 		rotY: 0,
 		rotZ: 180,
 		groesse: 1.2,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/441032_johnnypanic_finger-slide-with-a-thump.mp3",
+		sound: "data/cornflakes.mp3",
 	},
 
 	{
 		name: "broccoli",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/broccoli1.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/Broccoli2.jpg",
+		model: "data/broccoli.obj",
+		texture: "data/Broccoli.jpg",
 		rotX: 180,
 		rotY: 0,
 		rotZ: 180,
 		groesse: 0.8,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/Gregor%20M%20Snare%203.mp3",
+		sound: "data/broccoli.mp3",
 	},
-
 	{
 		name: "mayonnaise",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/mayo.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/3022364_001.jpg",
+		model: "data/mayonnaise.obj",
+		texture: "data/mayonnaise.jpg",
 		rotX: 180,
 		rotY: 0,
 		rotZ: 0,
 		groesse: 1,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/Gregor%20M%20Snare%202.mp3",
+		sound: "data/mayonnaise.mp3",
 	},
 
 	{
 		name: "mate",
-		model: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/mate.obj",
-		texture: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/el-tony-mate-ginger.jpg",
+		model: "data/mate.obj",
+		texture: "data/mate.jpg",
 		rotX: 180,
 		rotY: 0,
 		rotZ: 0,
 		groesse: 1,
-		sound: "https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/Gregor%20M%20Robot%2049.mp3",
+		sound: "data/mate.mp3",
 	}
 ]
 
-
 let models = []
-
 let things = []
+
+
+
 
 function preload() {
 
 	//Font
-	font = loadFont('https://cdn.glitch.me/f47b350a-152f-41af-accb-2b1f49780022/Hind-Bold.ttf?v=1639737864801')
-
+	font = loadFont('data/fonts/MigrosFont/Hind-Bold.ttf')
 
 	//Sound
 	soundFormats("mp3")
-	alarmSound = loadSound("https://cdn.glitch.me/f47b350a-152f-41af-accb-2b1f49780022/AlarmSound.mp3?v=1639497046103")
+	alarmSound = loadSound("data/AlarmSound.mp3")
 
+	// 5 random items
 	for(let i = 0; i < 5; i++) {
 		let randoItem = random(everything)
 		let loadedItem = {
@@ -389,31 +399,31 @@ function preload() {
 		models.push(loadedItem)
 	}
 
+	finger = loadModel("data/images/finger.obj", true)
+	shoppingbasket = loadModel("data/images/shoppingbasket.obj", true)
+	imgShoppingbasket = loadImage("data/images/afaf3.png")
+	migros = loadModel("data/images/migros1.obj")
 
-
-
-	finger = loadModel("https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/finger.obj", true)
-	shoppingbasket = loadModel("https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973%2Fshoppingbasket.obj", true)
-	imgShoppingbasket = loadImage("https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/afaf3.png")
-	migros = loadModel("https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/migros1.obj")
-	imgMigros = loadImage("https://cdn.glitch.me/ed8a4725-3fba-46e8-a48a-6a93a6062973/Migros-48011.jpeg")
-
-
-
+	// Backgrounds
+	imgMigros = loadImage("data/images/Migros_4.jpeg")
+	imgMigrosBW = loadImage("data/images/Migros_7.jpg")
+	imgMond = loadImage("data/images/Migros_6.jpg")
+	imgArktis = loadImage("data/images/migros_8.jpeg")
+	imgSunneuntergang = loadImage("data/images/Sunneuntergang.jpg")
+	imgBerge = loadImage("data/images/Berge.jpeg")
+	imgUnterwasser = loadImage("data/images/aqua.jpeg")
 }
+
+
 
 function setup() {
 	createCanvas(windowWidth, windowHeight, WEBGL);
 	angleMode(DEGREES)
 	imageMode(CENTER)
-	// pg = createGraphics(hc.width, hc.height)
 
-	// Button
-
-	// button = createButton('more shopping!')
-	// button.position(width / 3, height - (height / 3), -20)
-	// button.mousePressed(Körbli)
-
+	// slider
+	sliderBG = createSlider(1, 6, 1, 1)
+	sliderBG.position(width / 2, height * .9)
 
 	for(let m of models) {
 		things.push(new Item(m))
@@ -421,47 +431,58 @@ function setup() {
 }
 
 function draw() {
+
 	noCursor()
 	background(246, 196, 184)
 	// orbitControl()
 	noStroke()
 
-
-	//MIGROS
+	//Background Image
 	push()
+	imageMode(CENTER)
 	scale(width / 20, height / 16)
 	rotateX(180)
-	translate(0, 0, 120)
-	texture(imgMigros)
+	translate(0, 0, 150)
+
+
+	// sliderBG
+	let val = sliderBG.value()
+
+	if(val == 1) {
+		texture(imgMigros)
+	} else if(val == 2) {
+		texture(imgBerge)
+	} else if(val == 3) {
+		texture(imgMond)
+	} else if(val == 4) {
+		texture(imgSunneuntergang)
+	} else if(val == 5) {
+		texture(imgArktis)
+	} else if(val == 6) {
+		texture(imgUnterwasser)
+	}
 	model(migros)
 	pop()
+
+
 
 	//Laser
 	push()
 	strokeWeight(5)
-	stroke(255, 0, 0)
+	stroke(255, 0, 0, 20)
 	line(-width / 3, -height, 0, -width / 3, 0, 0)
 	pop()
 
 
-	// conveyor Belt
 	// Conveyor Belt
 	push()
 	fill(118, 131, 148)
-	translate(0, -height / 4, -101)
+	translate(0, -height / 4.3, -101)
 	box(width * 1.5, height * 0.3, 1)
 	pop()
 
-	// text
 
-	// push()
-	// textFont(font)
-	//  textSize(50);
-	//  fill(255, 102, 0);
-	//  text("MIGROS", -width/3,height/4, 0);
-	//  pop()
-
-	//  // Button
+	// Button
 	//  push()
 	// fill(255, 102, 0)
 	//  circle(-width/10, height/4, 100 )
@@ -479,19 +500,15 @@ function draw() {
 	//ALARM
 	push()
 	if(mouseX >= 30 && mouseX <= width - 30) {
-
 		if(mouseY >= 30 && mouseY <= height - 30) {
 			alarmSound.stop()
 		} else {
-
 			if(mouseIsPressed) {
 				alarmSound.play()
 			}
 		}
 	} else {
-
 		if(mouseIsPressed) {
-
 			alarmSound.play()
 		}
 	}
@@ -508,22 +525,21 @@ function draw() {
 	model(finger)
 	pop()
 
+
 	//SHOPPINGBASKET
 	if(imgShoppingbasket != null && shoppingbasket != null) {
 		push()
-		translate(width / 4, height / 6)
+		translate(width / 4, height / 6) // 6
 		scale(2)
 		rotateX(180)
-
 		texture(imgShoppingbasket)
 		model(shoppingbasket)
 		pop()
-
 	}
-
 }
 
 function mouseReleased() {
+	holdingItem = -1
 	for(let th of things) {
 		th.soundTrigger = true
 	}
@@ -534,7 +550,6 @@ class Item {
 		this.x = random(width / 3, width / 5)
 		this.y = random(height / 10, height / 8)
 		this.z = random(-100, -20)
-		// this.item = random(models)
 		this.name = item.name
 		this.model = item.model
 		this.texture = item.texture
@@ -544,23 +559,30 @@ class Item {
 		this.groesse = item.groesse
 		this.sound = item.sound
 		this.soundTrigger = true
+		this.id = things.length
+		// print(this.id)
 	}
 
 	display() {
 
+
 		//Objects on Mouse Drag and Sound
 		if(mouseIsPressed) {
-			if(dist(this.x, this.y, mouseX - width / 2, mouseY - height / 2) < 100) {
+			if((holdingItem == -1 || holdingItem == this.id) && dist(this.x, this.y, mouseX - width / 2, mouseY - height / 2) < 100) {
+				holdingItem = this.id
+				// print(holdingItem)
 				this.x = mouseX - width / 2
 				this.y = mouseY - height / 2
-			// 	if(this.soundTrigger) {
-			// 		this.sound.play()
-			// 		this.soundTrigger = false
-			// 	}
-			// } else {
-			// 	this.soundTrigger = true
+
+				// 	if(this.soundTrigger) {
+				// 		this.sound.play()
+				// 		this.soundTrigger = false
+				// 	}
+				// } else {
+				// 	this.soundTrigger = true
 			}
 		}
+
 
 		// Objects Sound on Laser
 		if(this.x <= -width / 3 && this.x <= -width / 4) {
@@ -568,44 +590,44 @@ class Item {
 				this.sound.play()
 				this.soundTrigger = false
 			}
-
 		} else {
 			this.soundTrigger = true
-
 		}
 
 		//ALL Things in Körbli
 		push()
 		translate(this.x, this.y, this.z)
 		if(this.texture !== undefined && this.model != undefined) {
-
 			rotateX(this.rotX)
 			rotateY(this.rotY)
 			rotateZ(this.rotZ)
 			scale(this.groesse)
 			texture(this.texture)
 			model(this.model)
-
 		}
 		pop()
 
 		// Things on conveyor belt
 		push()
-		if(this.y < -height / 4) {
-
+		if(this.y < -height / 8) {
 			this.x = this.x - (frameCount * 0.001)
-
 			if(this.x <= -width) {
 				this.x = width
 			}
-
 		}
 		pop()
 
-
-
+		// //text
+		// push()
+		// textAlign(CENTER)
+		// textFont(font)
+		// textSize(50);
+		// fill(255, 102, 0);
+		// text("LOCATION", 0, height*0.3);
+		// pop()
 	}
 }
+
 
 
 function Körbli() {
@@ -630,6 +652,7 @@ function Körbli() {
 	}
 }
 
+
 // function mousePressed() {
 // 	if(dist(this.x, this.y, mouseX - width / 2, mouseY - height / 2) < 100) {
 // 		this.x = mouseX - width / 2
@@ -638,6 +661,10 @@ function Körbli() {
 // 	}
 // }
 
+
+
+// function mouseReleased() {} 2x = killed it
+
 function saveFrame(toolName){ 
 	let timestamp = (new Date()).toISOString().replace(/[^0-9]/g, '').slice(0, -3); 
 	var filename = toolName + '_' + timestamp + '.png'; // with timestamp 
@@ -645,6 +672,8 @@ function saveFrame(toolName){
 	save(filename);  // use to save entire canvas 
 	// layer.save(filename); // use to save specific layer only 
 } 
+
+
 
 </script>
 

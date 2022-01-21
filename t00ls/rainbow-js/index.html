@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>1217_final_001</title>
+	<title>GUI OK - Last rainbow :)</title>
 	<meta charset="utf-8">
 	<!-- Compiled w/ P5LIVE, http://github.com/ffd8/p5live -->
 	<style type="text/css">
@@ -34,7 +34,7 @@
 <body>
 
 <script type="text/javascript">
-//1217_final_001
+//GUI OK - Last rainbow :)
 
 /* CUSTOM FUNCTIONS FOR P5LIVE */
 // keep fullscreen if window resized
@@ -58,14 +58,38 @@ var credits = {
 		`maria.alessandra.fratta` // link to website if you have it <a href="URL" target="_blank">first.lastname</a> 
 		,`giorgia.bandiera` 
 	] 
-	,class : `MA VISCOM HGK` 
-	,description : `to be a rainbow, or to not be a rainbow.... is this a question? ` 
-} 
+	,class : `MA` 
+	,description : `
+	
+	smashed rainbow
+	
+	` 
+}
 
 
 
 
 
+
+
+
+
+
+
+/* -----NOTES TO ADJUST
+-> BK FOR BACKGROUND DOESN'T REALLY WORK? 
+BG as well
+maybe we can write background on top and underneath write the variables?
+
+-> MUSIC OFF DOESN'T GO BACK TO DEFAULT: explore default value options
+
+OK !		-> THE PARENT DIV IS TOO MUCH ON THE RIGHT?
+
+-> put style on top; i think it's cool to choose your style before you start fucking it up
+
+-> stroke color default to set (?)
+
+*/
 
 
 
@@ -102,32 +126,318 @@ let musicSel // Selector for music on/off
 function setup() {
 	createCanvas(windowWidth, windowHeight)
 	colorMode(HSB)
-	buildGUI()
+	// buildGUI()
 	setupAudio();
+	
+	
+		
+	// -----------------------------------PARENT!!   create generic div (html container) 
+  guiHolder = createDiv() 
+    .class('guiHolder') // add class for styling via CSS 
+    
+  g2 = createDiv() 
+    .class('g2')
+
+ 
+  // -------------------------------------STYLE
+  createDiv('choose your style') 
+    .parent(guiHolder) // place inside gui div 
+    .class('label') // class for CSS 
+ 
+	styleSelect = createSelect()
+	.parent (guiHolder)
+	.class('slider')
+	.input(function() { 
+      background(0, 0, this.value()) // use immediately, basic demo 
+    }) 
+	styleSelect.option('lines', 0)
+	styleSelect.option('dots', 1)
+	styleSelect.option('circles', 2)
+	styleSelect.option('rays', 3)
+	styleSelect.option('rays + circles', 4)
+	styleSelect.option('waves', 5)
+	styleSelect.option('rect', 6)
+	styleSelect.option('bye bye', 7)
+	
+	styleSelect.changed(function(){
+		mode = this.value()
+	})
+	
+	
+	// -------------------------------------ARCS NUMBER
+    createDiv('Arcs Number')
+    .parent(guiHolder) // place inside gui div 
+    .class('label') // class for CSS 
+    
+    slc = createSlider(2, 30, 8, 1)
+    .parent(guiHolder) 
+    .class('slider') 
+    .input(function() { 
+      background(0, 0, this.value()) 
+    }) 
+    
+    
+    // -------------------------------------ARCS LENGTH
+	createDiv('Arcs Length')
+    .parent(guiHolder) // place inside gui div 
+    .class('label') // class for CSS 
+    
+    myLc = createSlider(1, 21, 11, 1)
+    .parent(guiHolder) 
+    .class('slider') 
+    .input(function() { 
+      background(0, 0, this.value()) 
+    }) 
+ 
+     // -------------------------------------ROTATION
+	createDiv('Rotation')
+    .parent(guiHolder) // place inside gui div 
+    .class('label') // class for CSS 
+    
+    myRot = createSlider(0.3, 8, 0.1, 0.1)
+    .parent(guiHolder) 
+    .class('slider') 
+    .input(function() { 
+      background(0, 0, this.value()) 
+    }) 
+    
+     // -------------------------------------WIDTH
+	createDiv('Height')
+    .parent(guiHolder) // place inside gui div 
+    .class('label') // class for CSS 
+    
+    sW = createSlider(0, width/2, 40, 5)
+    .parent(guiHolder) 
+    .class('slider') 
+    .input(function() { 
+      background(0, 0, this.value()) 
+    }) 
+    
+    
+    // -------------------------------------HEIGHT
+	createDiv('Width')
+    .parent(guiHolder) // place inside gui div 
+    .class('label') // class for CSS 
+    
+    sH = createSlider(0, height/2, 40, 5)
+    .parent(guiHolder) 
+    .class('slider') 
+    .input(function() { 
+      background(0, 0, this.value()) 
+    }) 
+    
+    
+    // -------------------------------------stroke weight
+	createDiv('Stroke Weight')
+    .parent(guiHolder) // place inside gui div 
+    .class('label') // class for CSS 
+    
+    myStroke = createSlider(2, 100, 15, 1)
+    .parent(guiHolder) 
+    .class('slider') 
+    .input(function() { 
+      background(0, 0, this.value()) 
+    }) 
+    
+    
+    
+    // -------------------------------------stroke color
+	createDiv('Stroke Color')
+    .parent(guiHolder) // place inside gui div 
+    .class('label') // class for CSS 
+    
+    myStrokeCol = createSlider(360, 660, 360, 50) 
+    .parent(guiHolder) 
+    .class('slider') 
+    .input(function() { 
+      background(0, 0, this.value()) 
+    }) 
+    
+    
+    // -------------------------------------swiggle
+	createDiv('Wiggle movement')
+    .parent(guiHolder) // place inside gui div 
+    .class('label') // class for CSS 
+    
+    sWig = createSlider(5, 100, 5, 1) 
+    .parent(guiHolder) 
+    .class('slider') 
+    .input(function() { 
+      background(0, 0, this.value()) 
+    }) 
+    
+    // -------------------------------------caos
+	createDiv('Jazz it up!')
+    .parent(guiHolder) // place inside gui div 
+    .class('label') // class for CSS 
+    
+    sCaos = createSlider(0, 15, 0.5, 0.5)
+    .parent(guiHolder) 
+    .class('slider') 
+    .input(function() { 
+      background(0, 0, this.value()) 
+    }) 
+    
+    
+     // -------------------------------------MUSIC
+	createDiv('music?') 
+    .parent(guiHolder) // place inside gui div 
+    .class('label') // class for CSS 
+ 
+	styleSelect = createSelect()
+	.parent (guiHolder)
+	.class('slider')
+	.input(function() { 
+      background(0, 0, this.value()) // use immediately, basic demo 
+    }) 
+	styleSelect.option('off', 0)
+	styleSelect.option('on', 1)
+	
+	styleSelect.changed(function(){
+		useAudio = this.value()
+	})
+
+	// -------------------------------------EMPTY SPACE
+	createDiv('')
+    .parent(guiHolder) // place inside gui div 
+    .class('label') // class for CSS
+    .input(function() { 
+      background(0, 0, this.value()) 
+    }) 
+	createDiv('')
+    .parent(guiHolder) // place inside gui div 
+    .class('label') // class for CSS
+    .input(function() { 
+      background(0, 0, this.value()) 
+    }) 
+
+	
+	// -------------------------------------LABEL ONLY
+	createDiv('Background')
+    .parent(guiHolder) // place inside gui div 
+    .class('label') // class for CSS
+    .input(function() { 
+      background(0, 0, this.value()) 
+    }) 
+    
+    // -------------------------------------HUE
+	createDiv('Hue')
+    .parent(guiHolder) // place inside gui div 
+    .class('label') // class for CSS 
+    
+    sbH = createSlider(0, 360, random(360), 1)
+    .parent(guiHolder) 
+    .class('slider') 
+    .input(function() { 
+      background(0, 0, this.value()) 
+    })
+    // -------------------------------------SAT
+	createDiv('Saturation')
+    .parent(guiHolder) // place inside gui div 
+    .class('label') // class for CSS 
+    
+    sbS = createSlider(0, 100, random(100), 1)
+    .parent(guiHolder) 
+    .class('slider') 
+    .input(function() { 
+      background(0, 0, this.value()) 
+    })
+    // -------------------------------------BRI
+	createDiv('Brightness')
+    .parent(guiHolder) // place inside gui div 
+    .class('label') // class for CSS 
+    
+    sbB = createSlider(0, 100, random(100), 1)
+    .parent(guiHolder) 
+    .class('slider') 
+    .input(function() { 
+      background(0, 0, this.value()) 
+    })
+    
+    
+    
+    
+ 
+   // create <style> tag for custom css (note `backticks` for multi-line value!) 
+  createElement('style', ` 
+  *{ 
+    outline: none; 
+    box-sizing: border-box; 
+  } 
+    .guiHolder{ 
+      position: fixed; 
+      right: 50px; 
+      top: 50px; 
+      border: 0px solid #fff; 
+      border-radius: 10px; 
+      padding: 10px;
+    } 
+    
+    .g2{
+      position: fixed; 
+      right: 50px; 
+      top: 50px; 
+      border: 0px solid #fff; 
+      border-radius: 10px; 
+      padding: 10px;
+    }
+    
+    .label{ 
+      color:#fff; 
+      font-family:sans-serif; 
+      font-size:10pt; 
+      padding:8px; 
+      
+    }
+    
+    
+    
+    .slider{ 
+      width:100%;
+      color:#f2f
+    } 
+    
+    `)  
+	
+	
 }
 
 
 function draw() {
+	/* audio vars: amp, ampEase, fft, waveform */
 	updateAudio();
 
 	//------BACKGROUND WITH SLIDER
 	let Hbg = 0 + sbH.value()
-	let Sbg = 0 + sbS.value()
-	let Bbg = 0 + sbB.value()
+	let Sbg = sbS.value()
+	let Bbg = sbB.value()
 	background(Hbg, Sbg, Bbg, 0.05)
+	
+
+
+
+
+
 	loopy()
+	
+	
+	
+	
 }
 
 
 //------------- LOOP OF STUFF --------------------------------
 function loopy(){
 	push()
+	
+	
 	//------STYLE AND POSITION	
 	noFill()
 	strokeWeight(myStroke.value())
 	translate(width / 2, height / 2)
 	rotate(radians(frameCount * myRot.value())) 
 	
+
 	let lc = myLc.value()
 	let rounds = slc.value()
 
@@ -146,6 +456,7 @@ function loopy(){
 				x = sin(i/PI) * j *sW.value() + cos(frameCount * .1 + i) * sWig.value() * sCaos.value()
 				myLc.value(ampEase%21)
 				slc.value(ampEase%31)
+				
 		}
 		
 		
@@ -186,137 +497,156 @@ pop()
 
 function buildGUI() {
 	
+	
+	//VAR
+	// let xDiv = width * .82
+	// let yDiv = height*.02
+	
+	// let xSli = 160
+	// let ySli = 30
+	
+	// let yOff = ySli+30
+	
+	// let xLab = xDiv+30
+	// let yLab = ySli+40
 
-	let xDiv = width * .82
-	let yDiv = height*.02
-	let xSli = 160
-	let ySli = 30
-	let yOff = ySli+30
-	let xLab = xDiv+30
-	let yLab = ySli+40
+	
+	// // STYLE GUI
+	// guiDiv = createDiv()
+	// guiDiv.position (xDiv, yDiv)
+	// guiDiv.size (320, 800) 
+	// // guiDiv.style('background', '#bfd1bf')
+	// // guiDiv.style ('opacity', .5)
+	// guiDiv.style('border-radius', '30px')
+	
+	
+	// // --------------- SLIDER (s) ----------------------- 
+	// // //min, max, default, stepSize
+	// // ----- Number Of Arches
+	// // slc = createSlider(2, 30, 8, 1)
+	// // slc.position (xSli, ySli)
+	// // setLabel('Arcs Number', xLab, yLab)
+	// // slc.parent (guiDiv)
+	
+	// // ----- Point of arches = length<
+	// myLc = createSlider(1, 21, 11, 1)
+	// myLc.position(xSli, yOff)
+	// setLabel('Arcs Length', xLab, yLab+30)
+	// myLc.parent (guiDiv)
+	
+	
+	// // ----- SLIDER Background 
+	// sbH = createSlider(0, 360, random(100), 1) 
+	// sbH.position(xSli, yOff*2)
+	// setLabel('BK Hue', xLab, yLab+90)
+	// sbH.parent (guiDiv)
+	
+	// sbS = createSlider(0, 100, random(100), 1)
+	// sbS.position(xSli, yOff*2+30)
+	// setLabel('BK Saturation', xLab, yLab+120)
+	// sbS.parent (guiDiv)
+	
+	// sbB = createSlider(0, 100, random(100), 1)
+	// sbB.position(xSli, yOff*2+60)
+	// setLabel('BK Brightness', xLab, yLab+150)
+	// sbB.parent (guiDiv)
+	
+	// // ----- Rotation Slider
+	// myRot = createSlider(0.3, 8, 0.1, 0.1)
+	// myRot.position(xSli, yOff*4)
+	// setLabel('Rotation', xLab, yLab*4)
+	// myRot.parent (guiDiv)
+	
+	// // ----- Width Slider
+	// sW = createSlider(0, width/2, 40, 5)
+	// sW.position(xSli, yOff*4+30)
+	// setLabel('Width', xLab, yLab*4+30)
+	// sW.parent (guiDiv)
+
+	// // ----- Height Slider
+	// sH = createSlider(0, height/2, 40, 5)
+	// sH.position(xSli, yOff*4+60)
+	// setLabel('Height', xLab, yLab*4+60)
+	// sH.parent (guiDiv)
+	
+	// // ----- Stroke Weight Slider
+	// myStroke = createSlider(2, 100, 15, 1) // min, max, default, stepSize 
+	// myStroke.position(xSli, yOff*4+90) // set position 
+	// setLabel('Stroke Weight',xLab, yLab*4+90)
+	// myStroke.parent (guiDiv)
+	
+	// // ----- Stroke COLOR Slider
+	// myStrokeCol = createSlider(360, 660, 360, 50) // min, max, default, stepSize 
+	// myStrokeCol.position(xSli, yOff*4+120) // set position 
+	// setLabel('Stroke Color', xLab, yLab*4+120)
+	// myStrokeCol.parent (guiDiv)
+	
+	
+	// // ----- Wig Slider
+	// sWig = createSlider(5, 100, 5, 1)
+	// sWig.position(xSli, yOff*7)
+	// setLabel('Wiggle mov', xLab, yLab*6+40)
+	// sWig.parent (guiDiv)
+	
+	// // ----- Caos Slider
+	// sCaos = createSlider(0, 15, 0.5, 0.5)
+	// sCaos.position(xSli, yOff*7+30)
+	// setLabel('Jazz it up!', xLab, yLab*6+70)
+	// sCaos.parent (guiDiv)
+	
+	// // // ----- Selector for styles	
+	// // styleSelect = createSelect()
+	// // styleSelect.position(xSli, yOff*8.5)
+	// // styleSelect.option('lines', 0)
+	// // styleSelect.option('dots', 1)
+	// // styleSelect.option('circles', 2)
+	// // styleSelect.option('rays', 3)
+	// // styleSelect.option('rays + circles', 4)
+	// // styleSelect.option('waves', 5)
+	// // styleSelect.option('rect', 6)
+	// // styleSelect.option('bye bye', 7)
+	
+	// // setLabel("choose your style", xLab, yLab*8-15)
+	// // styleSelect.parent (guiDiv)
+	
+	// // styleSelect.changed(function(){
+	// // 	mode = this.value()
+	// // })
+
+	// // ----- Selector Music	
+	// musicSel = createSelect(); // create dropdown 
+	// musicSel.position(xSli, yOff*9); // set position 
+	// musicSel.option('music off', 0)
+	// musicSel.option('music on', 1)
+	// //setLabel("music",xLab, yLab*8+20)
+	// musicSel.parent (guiDiv)
+	
+	// musicSel.changed(function(){
+	// 	useAudio = this.value()
+	// })
+	
+	
+	
+	
+	
+	
+	
 
 	
-	// STYLE GUI
-	guiDiv = createDiv()
-	guiDiv.position (xDiv, yDiv)
-	guiDiv.size (320, 800) 
-	guiDiv.style('border-radius', '30px')
 	
-	
-	// --------------- SLIDER (s) ----------------------- 
-	// ----- Number Of Arches
-	slc = createSlider(2, 30, 8, 1)
-	slc.position (xSli, ySli)
-	setLabel('Arcs Number', xLab, yLab)
-	slc.parent (guiDiv)
-	
-	// ----- Point of arches = length<
-	myLc = createSlider(1, 21, 11, 1)
-	myLc.position(xSli, yOff)
-	setLabel('Arcs Length', xLab, yLab+30)
-	myLc.parent (guiDiv)
-	
-	
-	// ----- SLIDER Background 
-	sbH = createSlider(0, 360, random(100), 1) 
-	sbH.position(xSli, yOff*2)
-	setLabel('BK Hue', xLab, yLab+90)
-	sbH.parent (guiDiv)
-	
-	sbS = createSlider(0, 100, random(100), 1)
-	sbS.position(xSli, yOff*2+30)
-	setLabel('BK Saturation', xLab, yLab+120)
-	sbS.parent (guiDiv)
-	
-	sbB = createSlider(0, 100, random(100), 1)
-	sbB.position(xSli, yOff*2+60)
-	setLabel('BK Brightness', xLab, yLab+150)
-	sbB.parent (guiDiv)
-	
-	// ----- Rotation Slider
-	myRot = createSlider(0.3, 8, 0.1, 0.1)
-	myRot.position(xSli, yOff*4)
-	setLabel('Rotation', xLab, yLab*4)
-	myRot.parent (guiDiv)
-	
-	// ----- Width Slider
-	sW = createSlider(0, width/2, 40, 5)
-	sW.position(xSli, yOff*4+30)
-	setLabel('Width', xLab, yLab*4+30)
-	sW.parent (guiDiv)
-
-	// ----- Height Slider
-	sH = createSlider(0, height/2, 40, 5)
-	sH.position(xSli, yOff*4+60)
-	setLabel('Height', xLab, yLab*4+60)
-	sH.parent (guiDiv)
-	
-	// ----- Stroke Weight Slider
-	myStroke = createSlider(2, 100, 15, 1) 
-	myStroke.position(xSli, yOff*4+90) 
-	setLabel('Stroke Weight',xLab, yLab*4+90)
-	myStroke.parent (guiDiv)
-	
-	// ----- Stroke COLOR Slider
-	myStrokeCol = createSlider(360, 660, 360, 50) 
-	myStrokeCol.position(xSli, yOff*4+120) 
-	setLabel('Stroke Color', xLab, yLab*4+120)
-	myStrokeCol.parent (guiDiv)
-	
-	
-	// ----- Wig Slider
-	sWig = createSlider(5, 100, 5, 1)
-	sWig.position(xSli, yOff*7)
-	setLabel('Wiggle mov', xLab, yLab*6+40)
-	sWig.parent (guiDiv)
-	
-	// ----- Caos Slider
-	sCaos = createSlider(0, 15, 0.5, 0.5)
-	sCaos.position(xSli, yOff*7+30)
-	setLabel('Jazz it up!', xLab, yLab*6+70)
-	sCaos.parent (guiDiv)
-	
-	// ----- Selector for styles	
-	styleSelect = createSelect()
-	styleSelect.position(xSli, yOff*8.5)
-	styleSelect.option('lines', 0)
-	styleSelect.option('dots', 1)
-	styleSelect.option('circles', 2)
-	styleSelect.option('rays', 3)
-	styleSelect.option('rays + circles', 4)
-	styleSelect.option('waves', 5)
-	styleSelect.option('rect', 6)
-	styleSelect.option('bye bye', 7)
-	
-	setLabel("choose your style", xLab, yLab*8-15)
-	styleSelect.parent (guiDiv)
-	
-	styleSelect.changed(function(){
-		mode = this.value()
-	})
-
-	// ----- Selector Music	
-	musicSel = createSelect(); 
-	musicSel.position(xSli, yOff*9); 
-	musicSel.option('music off', 0)
-	musicSel.option('music on', 1)
-	musicSel.parent (guiDiv)
-	musicSel.changed(function(){
-		useAudio = this.value()
-	})
 
 }
 
 
 // ------------- STYLE GUI --------------------------------
 
-function setLabel(txt, x, y) {
-	let elm = createDiv(txt)
-	elm.position(x, y - 12)
-	elm.style('color', '#fff')
-	elm.style('font-size', '11pt')
-	elm.style('font-family', 'sans-serif')
-}
+// function setLabel(txt, x, y) {
+// 	let elm = createDiv(txt)
+// 	elm.position(x, y - 12)
+// 	elm.style('color', '#fff')
+// 	elm.style('font-size', '11pt')
+// 	elm.style('font-family', 'sans-serif')
+// }
 
 
 
@@ -366,8 +696,18 @@ function updateAudio() {
 //--------MAKE GUI BE RESIZED!
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
-  //buildGUI()
+  buildGUI()
 }
+
+
+
+
+
+
+
+
+
+
 
 function saveFrame(toolName){ 
 	let timestamp = (new Date()).toISOString().replace(/[^0-9]/g, '').slice(0, -3); 

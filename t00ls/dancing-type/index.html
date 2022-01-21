@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Final_Draft_New</title>
+	<meta charset="utf-8">
+	<!-- Compiled w/ P5LIVE, http://github.com/ffd8/p5live -->
+	<style type="text/css">
+		body{
+			margin:0;
+			overflow:hidden;
+		}
+		canvas{
+			position:fixed;
+			top:0;
+			left:0;
+			z-index:-1;
+			width:100vw;
+			height:100vh;
+			margin:0;
+		}
+	</style>
+	<script type="text/javascript">
+		// eco-mode = only render if window focused
+		window.onblur = function () {
+			noLoop();
+		};
+		window.onfocus = function () {
+			loop();
+		};
+	</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+//Final_Draft_New
+
+/* CUSTOM FUNCTIONS FOR P5LIVE */
+// keep fullscreen if window resized
+function windowResized() {
+	resizeCanvas(windowWidth, windowHeight);
+}
+
+// custom ease function
+function ease(iVal, oVal, eVal){
+	return oVal += (iVal - oVal) * eVal;
+}
+
+// processing compatibility
+function println(msg){
+	print(msg);
+}
+
+
+// Lost interaction of mouseY on 'dance' (line 147)
+
+var credits = {
+	names: [
+		`Prarthana.Dixit` // link to website if you have it <a href="URL" target="_blank">first.lastname</a> 
+	],
+	class: `MDes`,
+	description: `My tool allows user to create an unique type and save it. 
+	Surprise yourself by experimenting with sliders and checkboxes!`
+}
+
+
+
+let defaultTxt = 'hello'
+let font = []
+let fontSize = 200
+let pointarray
+let r = 0
+let inp
+let mySelect
+let mySelectFont
+var vehicles = [];
+let checkbox
+let fly
+
+let guiHolder
+
+
+function preload() {
+	font.push(loadFont("https://cdn.glitch.me/1dd23718-4934-4ef7-a0cd-8cf1734b8f67%2FPlayfairDisplay-Italic-VariableFont_wght.ttf?v=1637423178123"))
+	font.push(loadFont("https://cdn.glitch.me/1dd23718-4934-4ef7-a0cd-8cf1734b8f67%2Fterminal-grotesque_open.otf?v=1637423224617"))
+	font.push(loadFont("https://cdn.glitch.me/1dd23718-4934-4ef7-a0cd-8cf1734b8f67%2FPPHatton-Medium.otf?v=1637423187306"))
+}
+
+function setup() {
+	createCanvas(windowWidth, windowHeight)
+	stroke(255)
+
+	//////////////SET UP FOR GUI & genType
+	initGUI()
+	genType()
+
+	//guiHolder = createDiv() 
+	//  .class('guiHolder') // add class for styling via CSS 
+
+	//// use styled div as label 
+	//createDiv('amazing slider') 
+	//  .parent(guiHolder) // place inside gui div 
+	//  .class('label') // class for CSS 
+
+	//// create generic slider 
+	//let mySlider = createSlider(0, 255, 0, 1) 
+	//  .parent(guiHolder) //  place inside gui div 
+	//  .class('slider') // class for CSS 
+	//  .input(function() { 
+	//    background(0, 0, this.value()) // use immediately, basic demo 
+	//  }) 
+
+}
+
+
+
+function initGUI() {
+
+	// //////////////////Text Lable for change bg
+	let div = createDiv('Change background');
+	div.style('color', '#FFF')
+	div.style('stroke', '0px');
+	div.style('font-size', '14px');
+	div.position(width * 0.60, 50);
+
+
+	// //////////////////Text Lable for size
+	let siz = createDiv('Change Size');
+	siz.style('color', '#FFF')
+	siz.style('stroke', '0px');
+	siz.style('font-size', '14px');
+	siz.position(width * 0.60, 80);
+
+	// //////////////////Text Lable for Magic
+	let mg = createDiv('Magic');
+	mg.style('color', '#FFF')
+	mg.style('stroke', '0px');
+	mg.style('font-size', '14px');
+	mg.position(width * 0.60, 115);
+
+	// //////////////////Text Lable for Textbox
+	let wor = createDiv('Insert Word');
+	wor.style('color', '#FFF')
+	wor.style('stroke', '0px');
+	wor.style('font-size', '14px');
+	wor.position(width * 0.60, 150);
+
+
+
+	///////////////////CHECKBOX
+	checkbox = createCheckbox('Go Crazy', false);
+	checkbox.style('color', '#FFF')
+	checkbox.position(width * 0.70, 250)
+	checkbox.changed(myCheckedEvent);
+
+	//////////////////////////////////////
+
+	//////////////////Gather Checkbox
+	fly = createCheckbox('Sticky Points', false)
+	fly.style('color', '#FFF')
+	fly.position(width * 0.70, 280)
+	fly.changed(myFlyEvent)
+
+	/////////////////////////////////////
+
+	///////////////BG SLIDER
+	sliderBG = createSlider(0, 255, 0)
+	sliderBG.position(width * .70, 50) //position of the slider
+
+	///////////////SCALE
+	sliderScale = createSlider(1, 5, 1, .1)
+	sliderScale.position(width * .70, 80) //position of the slider
+
+	///////////////Shape Size
+	sliderMov = createSlider(0, 100, .09, .01) //(min,max, default, steps)
+	sliderMov.position(width * .70, 115)
+
+	///////////////TEXT INPUT
+	inp = createInput('');
+	inp.position(width * .70, 150);
+	inp.size(150);
+	inp.value(defaultTxt)
+	inp.input(myInputEvent);
+
+	/////////////Select Shapes
+	mySelect = createSelect(); // create dropdown 
+	mySelect.position(width * .70, 200); // set position 
+	mySelect.option('Round'); // add option 
+	mySelect.option('Line'); // add option 
+	mySelect.option('Rectangle');
+	//	mySelect.option('Dance') // add option 
+	mySelect.selected('Round'); // set default 
+
+
+	/////////////Select Fonts
+	mySelectFont = createSelect(); // create dropdown 
+	mySelectFont.position(width * .78, 200); // set position 
+	mySelectFont.option('PlayFair', 0); // add option 
+	mySelectFont.option('Grotesque', 1); // add option 
+	mySelectFont.option('Hatton', 2); // add option 
+	mySelectFont.selected('PlayFair'); // set default 
+
+	//////////////////Build function to initiate the value of fonts
+	mySelectFont.changed(function() {
+		genType()
+	})
+
+
+}
+
+function draw() {
+	background(0, 0, sliderBG.value())
+	noFill()
+	translate(width / 2, height / 2) //rotate slider or moving
+	scale(sliderScale.value()) //add slider
+
+
+	///////////////FOR DROPDOWN SHAPEs
+	if(mySelect.value() == 'Round') {
+		drawshape(ellipse)
+	} else if(mySelect.value() == 'Line') {
+		drawshape(line)
+		////////////// to translate the array of lines into hello w/ lines
+	} else if(mySelect.value() == 'Rectangle') {
+		drawshape(rect)
+		// } else if(mySelect.value() == 'Dance') {
+		// 	for(var i = 0; i < vehicles.length; i++) {
+		// 		var v = vehicles[i];
+		// 		v.behaviors();
+		// 		v.update();
+		// 		v.show();
+		// 	}
+
+
+	}
+
+}
+
+////////////////////////Go Crazy Checkbox (Shape Size)
+function myCheckedEvent() {
+	if(this.checked()) {
+		console.log('Checking!');
+	} else {
+		console.log('Unchecking!');
+	}
+}
+
+function myFlyEvent() {
+	if(this.checked()) {
+		console.log('Unchecking!');
+	} else {
+		console.log('Unchecking!');
+	}
+}
+
+////////////DRAWING SHAPES 
+function drawshape(shape) {
+	for(i = 0; i < pointarray.length; i++) {
+
+		////////////////CHECKBOX (GO CRAZY) for Animation
+		let w = 0,
+			h = 0
+		//if(keyCode === UP_ARROW) {
+		if(checkbox.checked()) {
+			w = random(sliderMov.value())
+			h = random(sliderMov.value())
+		}
+		/////////////Try dancing here - sin/framecount/etc.
+		push()
+		translate(pointarray[i].x, pointarray[i].y)
+		let a = atan2(mouseY - (pointarray[i].y + height / 2), mouseX - (pointarray[i].x + width / 2));
+		rotate(r + random(sliderMov.value()))
+		rotate(a)
+		strokeWeight(1)
+
+		if(shape == shape) {
+			shape(-w / 2 - 10, -h / 2 - 10, w / 2 + 10, h / 2 + 10)
+		} else {
+			shape(10, 10, w, h)
+		}
+
+		pop()
+
+	}
+	if(fly.checked()) {
+		// background()
+			push()
+		for(var i = 0; i < vehicles.length; i++) {
+			var v = vehicles[i];
+			v.behaviors();
+			v.update();
+			v.show();
+		}
+		pop()
+
+	}
+
+}
+
+function myInputEvent() {
+	genType()
+}
+
+function genType() {
+	// grab bounding box of text
+	let bounds = font[mySelectFont.value()].textBounds(inp.value(), 0, 0, fontSize)
+
+	// textToPoints(txt, x, y, size, options)
+	pointarray = font[mySelectFont.value()].textToPoints(inp.value(), -bounds.w / 2, bounds.h / 2, fontSize, {
+		sampleFactor: .07
+	})
+
+	vehicles = []
+	for(var i = 0; i < pointarray.length; i++) {
+		var pt = pointarray[i];
+		var vehicle = new Vehicle(pt.x, pt.y);
+		vehicles.push(vehicle);
+	}
+}
+
+function Vehicle(x, y) {
+	this.pos = createVector(random(width), random(height));
+	this.target = createVector(x, y);
+	this.vel = p5.Vector.random2D();
+	this.acc = createVector();
+	this.r = 5; //size of dots
+	this.maxspeed = 10;
+	this.maxforce = 5;
+}
+
+Vehicle.prototype.behaviors = function() {
+	var arrive = this.arrive(this.target);
+	var mouse = createVector(mouseX, mouseY);
+	var flee = this.flee(mouse);
+
+	arrive.mult(1);
+	flee.mult(5);
+
+	this.applyForce(arrive);
+	this.applyForce(flee);
+};
+
+Vehicle.prototype.applyForce = function(f) {
+	this.acc.add(f);
+};
+
+Vehicle.prototype.update = function() {
+	this.pos.add(this.vel);
+	this.vel.add(this.acc);
+	this.acc.mult(0);
+};
+
+// *** Listen to Box
+Vehicle.prototype.show = function() {
+	stroke(255);
+	strokeWeight(this.r);
+	point(this.pos.x, this.pos.y);
+};
+
+Vehicle.prototype.arrive = function(target) {
+	var desired = p5.Vector.sub(target, this.pos);
+	var d = desired.mag();
+	var speed = this.maxspeed;
+	if(d < 100) {
+		speed = map(d, 0, 100, 0, this.maxspeed);
+	}
+	desired.setMag(speed);
+	var steer = p5.Vector.sub(desired, this.vel);
+	steer.limit(this.maxforce);
+	return steer;
+};
+
+Vehicle.prototype.flee = function(target) {
+	var desired = p5.Vector.sub(target, this.pos);
+	var d = desired.mag();
+	if(d < 50) {
+		desired.setMag(this.maxspeed);
+		desired.mult(-1);
+		var steer = p5.Vector.sub(desired, this.vel);
+		steer.limit(this.maxforce);
+		return steer;
+	} else {
+		return createVector(0, 0);
+	}
+};
+
+function saveFrame(toolName) {
+	let timestamp = (new Date()).toISOString().replace(/[^0-9]/g, '').slice(0, -3);
+	var filename = toolName + '_' + timestamp + '.png'; // with timestamp 
+	//var filename = toolName + '.png'; // without timestamp 
+	save(filename); // use to save entire canvas 
+	// layer.save(filename); // use to save specific layer only 
+}
+</script>
+
+</body>
+</html>
