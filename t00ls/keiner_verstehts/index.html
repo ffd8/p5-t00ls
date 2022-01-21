@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>10:59 _ 17/12</title>
+	<meta charset="utf-8">
+	<!-- Compiled w/ P5LIVE, http://github.com/ffd8/p5live -->
+	<style type="text/css">
+		body{
+			margin:0;
+			overflow:hidden;
+		}
+		canvas{
+			position:fixed;
+			top:0;
+			left:0;
+			z-index:-1;
+			width:100vw;
+			height:100vh;
+			margin:0;
+		}
+	</style>
+	<script type="text/javascript">
+		// eco-mode = only render if window focused
+		window.onblur = function () {
+			noLoop();
+		};
+		window.onfocus = function () {
+			loop();
+		};
+	</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+<script type="text/javascript" src="https://unpkg.com/hydra-synth"></script>
+<script type="text/javascript" src="includes/libs/hydra-synth.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+//10:59 _ 17/12
+
+/* CUSTOM FUNCTIONS FOR P5LIVE */
+// keep fullscreen if window resized
+function windowResized() {
+	resizeCanvas(windowWidth, windowHeight);
+}
+
+// custom ease function
+function ease(iVal, oVal, eVal){
+	return oVal += (iVal - oVal) * eVal;
+}
+
+// processing compatibility
+function println(msg){
+	print(msg);
+}
+
+
+var credits = {
+	names : [
+		'Margherita.D\'Ugo',
+		'Mégane.Hilpertshauser'
+]
+,class : 'MA'
+,description : 'Keiner Versteht\'s is a music label which makes everyone\'s music come true'
+}
+
+
+let libs = ['https://unpkg.com/hydra-synth', 'includes/libs/hydra-synth.js']
+let pg // store hydra texture
+let med, reg, bold
+let input, input2
+let button, button2
+let sel
+let mode = 0
+let guiDiv, titleDiv
+let sliderObj, sliderText, sliderBack
+let sunflower, croc, statue
+
+let recording = false
+
+//HYDRA TEXTURE BACKGROUND
+// hydra canvas + init
+let hc = document.createElement('canvas') // hydra canvas + custom size
+hc.width = 640
+hc.height = 360
+let hydra = new Hydra({
+	detectAudio: false,
+	canvas: hc
+})
+
+// sandbox - start
+osc(0, -0.015, () => sliderBack.value()).diff(osc(() => sliderBack.value(), -0.01).rotate(Math.PI / 2))
+	.modulateScale(noise(6, 0.25).modulateScale(osc(15).rotate(() => Math.sin(time / 2))), 0.6).contrast(1.4)
+	.add(src(o0).modulate(o0, () => ampEase), .6)
+	.invert().brightness(0.01).contrast(1)
+	.modulateScale(osc(() => sliderBack.value()), -0.2)
+	.out()
+// sandbox - STOP
+
+//||!! FIXING UI WHEN RESIZING !!||//
+function windowResize() {
+	resizeCanvas(windowWidth, windowHeight)
+
+	guiDiv.position(0, windowHeight - 25)
+	sel.position(640, 7);
+	sel.position(300, 7);
+	sliderText.position(620, 8)
+	sliderObj.position(940, 8)
+	sliderBack.position(1200, 8)
+	sel.position(1140, 7);
+	button.position(183, 5)
+	input.position(30, 5)
+	button2.position(400, 4);
+	input2.position(275, 4);
+	btnRecord.position(width / 2 + 580, 76)
+	btnPlay.position(width / 2 + 605, 102)
+
+
+	text("KEINER VERSTEHT\'S", width / 2 - 37, -height / 2 + 28)
+	text("we make even bad music come true", width / 2 - 37, -height / 2 + 55)
+}
+
+
+function preload() {
+	med = loadFont("https://cdn.glitch.me/6c46ba77-5ed0-4a1c-b43e-1958ede7d711%2FDarkerGrotesque-Medium.ttf?v=1639151053534")
+	reg = loadFont("https://cdn.glitch.me/6c46ba77-5ed0-4a1c-b43e-1958ede7d711%2FDarkerGrotesque-Regular.ttf?v=1639151055324")
+	bold = loadFont("https://cdn.glitch.me/fde2ef77-3dcc-44c5-a073-d69176f225ff/Akzidenz%20Grotesk%20Pro%20Med%20Regular.otf?v=1639745858594")
+	parabole = loadFont("https://cdn.glitch.me/6c46ba77-5ed0-4a1c-b43e-1958ede7d711%2FParaboleTrial-Regular.otf?v=1639415727598")
+	unknown = loadFont("https://cdn.glitch.me/6c46ba77-5ed0-4a1c-b43e-1958ede7d711%2FUnknown-RND.ttf?v=1639067106601")
+	sunflower = loadModel("https://cdn.glitch.me/6c46ba77-5ed0-4a1c-b43e-1958ede7d711%2F10455_Sunflower_v1_max2010_it2.obj")
+	croc = loadModel("https://cdn.glitch.me/6c46ba77-5ed0-4a1c-b43e-1958ede7d711/18751_Crocodile_lunging_sideways_V1_.obj")
+	statue = loadModel("https://cdn.glitch.me/6c46ba77-5ed0-4a1c-b43e-1958ede7d711/statue.obj")
+}
+
+
+function setup() {
+	createCanvas(windowWidth, windowHeight, WEBGL)
+	textFont(reg)
+	pg = createGraphics(hc.width, hc.height)
+
+	angleMode(DEGREES)
+
+	btnRecord = createButton('&bull; RECORD')
+	btnRecord.position(width / 2 + 580, 76)
+	btnRecord.style('background', 'none')
+	btnRecord.style('border',  '1px solid #00ff00')
+	btnRecord.style('color', '#00ff00')
+	btnRecord.mousePressed(function() {
+		if(recording) {
+			recordStop()
+		} else {
+			recordStart()
+		}
+	})
+
+	// button to play/pause
+	btnPlay = createButton('PLAY')
+	btnPlay.position(width / 2 + 605, 102)
+	btnPlay.style('background', 'none')
+	btnPlay.style('border',  '1px solid #00ff00', )
+	btnPlay.style('color', '#00ff00')
+	btnPlay.hide()
+	btnPlay.mousePressed(function() {
+		if(soundFile.isPlaying()) {
+			playStop()
+		} else {
+			playStart()
+		}
+	})
+
+	setupAudio();
+
+	// GUI! 
+	push()
+	guiDiv = createDiv()
+	guiDiv.position(0, windowHeight - 55)
+	guiDiv.size(width, 55)
+	guiDiv.style('background', 'none')
+
+	initGUI()
+
+	// add CSS to GUI
+	styleGUI()
+	pop()
+
+	push()
+	//TEXT INPUT :: EP TITLE
+	input = createInput();
+	input.position(30, 4); // SHOULD BE ABSOLUTE !!!
+	input.style('border',  '1px solid #fff')
+	input.parent(guiDiv)
+	button = createButton("copyright");
+	button.position(186, 4); // SHOULD BE ABSOLUTE !!!
+	button.style('background', 'none')
+	button.style('border',  '1px solid #fff')
+	button.style('color', '#fff')
+	button.mousePressed(drawName);
+	button.parent(guiDiv)
+
+
+	//TEXT INPUT :: ARTIST 
+	input2 = createInput();
+	input2.position(275, 4);
+	input2.style('border',  '1px solid #fff')
+	input2.parent(guiDiv)
+	button2 = createButton("release");
+	button2.style('background', 'none')
+	button2.style('border',  '1px solid #fff')
+	button2.style('color', '#fff')
+	button2.position(432, 4);
+	button2.mousePressed(drawArtist);
+	button2.parent(guiDiv)
+
+	// styleButton()
+	pop()
+
+	// SELECT2
+	push()
+	textAlign(CENTER); {
+		sel = createSelect();
+		sel.position(830, 7);
+		sel.style('background', 'none')
+		sel.style('border', 'none')
+		sel.style('color','#fff')
+		sel.parent(guiDiv);
+		sel.option('nostalgic', 0); // the second value represent what the computer see
+		sel.option('experimental', 1); // so I can use these values to change my mode
+		sel.option('alternative', 2);
+		sel.changed(function() { // is a function where mode
+			mode = this.value()
+		})
+	}
+
+	// SELECT2
+	textAlign(CENTER); {
+		sel = createSelect();
+		sel.parent(guiDiv);
+		sel.position(530, 5);
+		sel.style('background', 'none')
+		sel.style('border', 'none')
+	    sel.style('color','#fff')
+		sel.option('essential', 3);
+		sel.option('ambient', 4);
+		sel.option('electronic', 5);
+		sel.changed(function() { // is a function where mode
+			mode = this.value()
+		})
+	}
+		// SELECT3
+	push()
+	textAlign(CENTER); {
+		sel = createSelect();
+		sel.position(1140, 7);
+		sel.style('background', 'none')
+		sel.style('border', 'none')
+		sel.style('color','#fff')
+		sel.parent(guiDiv);
+		sel.option('fluid', 6); // the second value represent what the computer see
+		sel.option('solid', 7); // so I can use these values to change my mode
+		sel.changed(function() { // is a function where mode
+			mode = this.value()
+		})
+	}
+
+}
+
+// END OF SETUP !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+function draw() {
+	/* audio vars: amp, ampEase, fft, waveform */
+	updateAudio();
+
+	clear()
+	background(0)
+	cursor('https://cdn.glitch.me/fde2ef77-3dcc-44c5-a073-d69176f225ff/click-02.png?v=1639697865967')
+
+	pg.clear()
+	pg.drawingContext.drawImage(hc, 0, 0, pg.width, pg.height)
+	pixelDensity(1)
+
+	//BACKGROUND
+	push()
+	noStroke()
+	texture(pg)
+	plane(width, height)
+	pop()
+
+
+	// WHEN SELECTED OPTION
+	function mySelectEvent() {
+		let item = sel.value();
+	}
+
+	// SELECTED OPTION OBJ
+
+	if(mode == 0) {
+
+		//SUNFLOWER FRONT 
+		push()
+		translate(0,0,50)
+		scale(2.5 + ampEase/3)
+		// rotateZ(width / 2, height / 2, frameCount / 80)
+		rotateZ(sliderObj.value())
+		stroke(0, 255, 0)
+		strokeWeight(0.05)
+		noFill()
+		model(sunflower)
+		pop()
+
+
+		//SUNFLOWER RIGHT	
+		push()
+		translate(width * .25, 0)
+		scale(3 + ampEase/2)
+		rotateY(sliderObj.value())
+		//rotateZ(width/2, height/2,frameCount/80)
+		stroke(0, 255, 0)
+		strokeWeight(0.05)
+		noFill()
+		model(sunflower)
+		pop()
+
+		//SUNFLOWER LEFT
+		push()
+		translate(-width * .25, 0)
+		scale(3 + ampEase/2)
+		//rotateX(width/4, height/2,frameCount/80)
+		rotateY(sliderObj.value())
+		stroke(0, 255, 0)
+		strokeWeight(0.05)
+		noFill()
+		model(sunflower)
+		pop()
+
+	} else if(mode == 1) {
+
+		//STATUE
+		push();
+		for(let i = 0; i < 10; i++) {
+			for(let j = 0; j < 8; j++) {
+				push();
+				translate((-width / 2) + (i * 200) + 35, (-height / 2) + (j * 200) + 35,100);
+
+				noFill()
+				stroke(0, 0, 255)
+				strokeWeight(0.2)
+				scale(-2.5+ampEase)
+				rotateY(sliderObj.value())
+				model(statue);
+				pop();
+			}
+		}
+		pop();
+
+
+	} else if(mode == 2) {
+		push()
+		translate(0, 0, 200)
+		scale(-1.5 + ampEase)
+		rotateY(sliderObj.value())
+		rotateX(320)
+		stroke(255, 0, 255)
+		strokeWeight(0.09)
+		noFill()
+		model(croc)
+		pop()
+
+		push()
+		translate(width * .25, 0, 200)
+		scale(-1.5 + ampEase)
+		rotateY(sliderObj.value())
+		rotateX(-320)
+		stroke(255, 0, 255)
+		strokeWeight(0.09)
+		noFill()
+		model(croc)
+		pop()
+		
+		push()
+		translate(-width * .25, 0, 200)
+		scale(-1.5 + ampEase)
+		rotateY(sliderObj.value())
+		rotateX(-320)
+		stroke(255, 0, 255)
+		strokeWeight(0.09)
+		noFill()
+		model(croc)
+		pop()
+
+	}
+
+	// SELECTED OPTION TYPE
+	if(mode == 3) { // ???????????????????????
+		textAlign(CENTER,CENTER)
+		textFont(med)
+
+	} else if(mode == 4) {
+		textAlign(CENTER,CENTER)
+		textFont(parabole)
+
+	} else if(mode == 5) {
+		textAlign(CENTER,CENTER)
+		textFont(unknown)
+	}
+
+// SELECTED OPTION BACKGROUND
+	if(mode == 7) { // ???????????????????????
+	fill (0)
+	noStroke()
+	plane(width, height,0)
+
+
+	} else if(mode == 8) {
+	push()
+	noStroke()
+	texture(pg)
+	plane(width, height,0)
+	pop()
+
+	} 
+	
+
+	push()
+	textSize(40);
+	fill(0, 255, 0)
+	textFont(med)
+	textAlign(CENTER, CENTER)
+	text(input.value(), 0, -height / 2 + 40)
+	pop()
+	
+	push()
+	textSize(sliderText.value());
+	textAlign(CENTER, CENTER)
+	fill(255)
+	text(input2.value(), 0, 0);
+	pop()
+
+	push()
+	fill(255)
+	textSize(25)
+	textAlign(RIGHT, CENTER)
+	textFont(bold)
+	text("KEINER VERSTEHT\'S", width / 2 - 37, -height / 2 + 28)
+	pop()
+	
+	push()
+	fill(255)
+	textFont(bold)
+	textSize(15)
+	textAlign(RIGHT, CENTER)
+	text("we make even bad music come true", width / 2 - 37, -height / 2 + 55)
+	pop()
+
+
+
+}
+///////////////////////END OF DRAW//////////////////////////////////////////
+
+// STYLE GUI
+
+function styleGUI() {
+	createElement('style', `
+    
+    input[type = 'range']{
+    overflow: hidden;
+    width: 150px;
+    -webkit-appearance: none;
+    background-color: #fffff;
+    }
+    
+    input[type = 'range']::-webkit-slider-runnable-track{
+    height:8px;
+    width: 50px;
+    -webkit-appearance: none;
+    color: #00ff00;
+    }
+    
+    input[type = 'range']::-webkit-slider-thumb{
+    height:8px;
+    width: 15px;
+    -webkit-appearance: none;
+    cursor: default;
+    background: #000;
+    box-shadow:-80px 0 0 80px #00ff00;
+    }
+    
+    
+    `)
+}
+
+function initGUI() {
+	sliderText = createSlider(30, 2000, 100, 5)
+	sliderText.position(620, 8)
+	sliderText.parent(guiDiv)
+
+	sliderObj = createSlider(0, 255, 5, 0.5)
+	sliderObj.position(940, 8)
+	sliderObj.parent(guiDiv)
+	
+sliderBack = createSlider(0, 30, 3, 3)
+	sliderBack.position(1200, 8)
+	sliderBack.parent(guiDiv)
+	
+}
+
+//TEXT INPUT FUNCTION
+function drawName() {
+	// textSize(30);
+	// let name = input.value();
+	// fill(255)
+	// text(name, 0,0);
+
+}
+
+function drawArtist() {
+	// textSize(30);
+	// let artist = input2.value();
+	// fill(255)
+	//text(artist, 0,0)
+
+}
+
+
+
+/* DEMO FOR RECORDING AUDIO */
+
+function recordStart() {
+	recording = true
+	btnRecord.html('STOP')
+	recorder.record(soundFile);
+	// recordingColor = color(255, 0, 0)
+	btnPlay.hide()
+}
+
+function recordStop() {
+	recording = false
+	btnRecord.html('RECORD')
+	recorder.stop();
+	// recordingColor = color(0, 255, 0)
+	btnPlay.show()
+}
+
+function playStart() {
+	btnPlay.html('STOP')
+	soundFile.loop();
+	btnRecord.hide()
+	// recordingColor = color(0)
+}
+
+function playStop() {
+	btnPlay.html('PLAY')
+	soundFile.stop();
+	btnRecord.show()
+}
+
+/* AUDIO INIT */
+let mic, fftRaw, fft = [],
+	waveform = [],
+	amp = 0.0,
+	ampStereo = {
+		l: 0.0,
+		r: 0.0
+	},
+	ampEase = 0.0,
+	numBins = 512,
+	bands = 12;
+
+let amplitude, recorder, soundFile
+
+function setupAudio() {
+	userStartAudio();
+	mic = new p5.AudioIn();
+	mic.start();
+	fftRaw = new p5.FFT(0.75, numBins);
+	fftRaw.setInput(soundFile);
+
+	// create file to hold recording
+	soundFile = new p5.SoundFile();
+
+	// connect the mic to the recorder
+	recorder = new p5.SoundRecorder();
+	recorder.setInput(mic);
+
+	// create amplitude for levels of soundfile
+	amplitude = new p5.Amplitude();
+	amplitude.setInput(soundFile)
+}
+
+function updateAudio() {
+	fftRaw.analyze();
+
+	// small change from audio-snippet for using soundfile's amplitude
+	amp = amplitude.getLevel() * 1000; // average mixed amplitude
+	ampStereo.l = amplitude.getLevel(0) * 500; // average left amplitude
+	ampStereo.r = amplitude.getLevel(1) * 500; // average right amplitude
+	ampEase = ease(amp, ampEase, 0.0075); // smooth 'amp'
+	waveform = fftRaw.waveform(); // array (-1, 1)
+	fft = fftRaw.logAverages(fftRaw.getOctaveBands(bands)); // array (0, 255)
+}
+
+function saveFrame(toolName){ 
+	let timestamp = (new Date()).toISOString().replace(/[^0-9]/g, '').slice(0, -3); 
+	var filename = toolName + '_' + timestamp + '.png'; // with timestamp 
+	//var filename = toolName + '.png'; // without timestamp 
+	save(filename);  // use to save entire canvas 
+	// layer.save(filename); // use to save specific layer only 
+} 
+
+</script>
+
+</body>
+</html>
